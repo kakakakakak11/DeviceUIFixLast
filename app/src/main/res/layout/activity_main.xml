@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  tools:context="com.example.deviceui.MainActivity">
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+
+    <com.google.android.material.appbar.AppBarLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:theme="@style/AppTheme.AppBarOverlay">
+
+      <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+
+
+      <!--        <android.support.design.widget.AppBarLayout-->
+      <!--          android:layout_width="match_parent"-->
+      <!--          android:layout_height="wrap_content">-->
+
+      <!--          <android.support.v7.widget.Toolbar-->
+      <!--            android:id="@+id/toolbar"-->
+      <!--            android:layout_width="match_parent"-->
+      <!--            android:layout_height="?attr/actionBarSize"-->
+      <!--            android:background="?attr/colorPrimary" />-->
+
+      <!--        </android.support.design.widget.AppBarLayout>-->
+
+      <!--        <Button-->
+      <!--          android:id="@+id/button"-->
+      <!--          android:layout_width="wrap_content"-->
+      <!--          android:layout_height="wrap_content"-->
+      <!--          android:layout_gravity="center_horizontal"-->
+      <!--          android:layout_marginTop="15dp"-->
+      <!--          android:width="220dp"-->
+      <!--          android:text="@string/button_wifi_text" />-->
+
+      <Button
+        android:id="@+id/btn_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:width="220dp"
+        android:text="Принимать данные"
+        android:textAllCaps="true" />
+
+      <Button
+        android:id="@+id/btn_bt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:width="220dp"
+        android:text="@string/button_bluetooth_text" />
+
+
+      <org.florescu.android.rangeseekbar.RangeSeekBar
+        android:id="@+id/rangeSeekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+      </org.florescu.android.rangeseekbar.RangeSeekBar>
+
+      <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <EditText
+          android:id="@+id/edit_speedMat"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_weight="1"
+          android:text="5000"
+          android:inputType="text|textNoSuggestions"
+          android:singleLine="true" />
+
+        <Button
+          android:id="@+id/btn_calc"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Посчитать"
+          />
+
+      </LinearLayout>
+
+
+
+
+
+      <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_marginTop="5dp"
+        android:layout_height="200dip"
+        android:layout_weight="1"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="223dp" />
+
+    </LinearLayout>
+
+
+
+    <!--    <RelativeLayout-->
+    <!--        android:id="@+id/fragment"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent"-->
+    <!--        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>-->
+
+
+  </LinearLayout>
+
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

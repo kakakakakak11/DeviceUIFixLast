@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+      android:id="@+id/receive_text"
+      android:layout_width="match_parent"
+      android:layout_height="524dp"
+      android:layout_weight="2"
+      android:freezesText="true"
+      android:gravity="bottom"
+      android:scrollbars="vertical"
+      android:visibility="gone"
+      android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+
+
+    <com.jjoe64.graphview.GraphView
+      android:id="@+id/graph"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:layout_weight="1" />
+
+    <View
+        android:layout_width="match_parent"
+        android:background="?android:attr/listDivider"
+        android:layout_height="2dp" />
+
+    <org.florescu.android.rangeseekbar.RangeSeekBar
+      android:id="@+id/rangeSeekBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"/>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal">
+
+        <EditText
+          android:id="@+id/edit_speedMat"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_weight="2"
+          android:text="5000"
+          android:textAlignment="center"
+          android:inputType="numberDecimal"
+
+          android:singleLine="true" />
+
+        <Button
+          android:id="@+id/btn_calc"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="Посчитать"
+          />
+
+        <TextView
+          android:id="@+id/txt_calcResult"
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="0"
+          android:textAlignment="center"
+          />
+    </LinearLayout>
+
+
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal">-->
+
+<!--        <EditText-->
+<!--            android:id="@+id/send_text"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="1"-->
+<!--            android:inputType="text|textNoSuggestions"-->
+<!--            android:singleLine="true" />-->
+
+<!--        <ImageButton-->
+<!--            android:id="@+id/send_btn"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:contentDescription="TODO" app:srcCompat="@drawable/ic_send_white_24dp" />-->
+<!--    </LinearLayout>-->
+
+</LinearLayout>
+
