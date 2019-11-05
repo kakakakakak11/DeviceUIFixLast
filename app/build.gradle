@@ -36,4 +36,6 @@ dependencies {
   implementation files('libs/org.eclipse.paho.android.service-1.1.1.jar')
   implementation files('libs/org.eclipse.paho.client.mqttv3-1.1.1.jar')
   implementation 'org.florescu.android.rangeseekbar:rangeseekbar-library:0.3.0'
+
+  implementation project(':MPChartLib')
 }

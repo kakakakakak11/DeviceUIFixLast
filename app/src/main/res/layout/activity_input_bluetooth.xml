@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  tools:context=".InputBluetooth">
+
+
+  <androidx.appcompat.widget.LinearLayoutCompat
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="5dp"
+      >
+
+      <ImageView
+        android:id="@+id/iv_bt"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/ic_bluetooth"
+        />
+
+      <ImageView
+        android:id="@+id/iv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/ic_cloud_off"
+        />
+
+      <Button
+        android:id="@+id/btn_deviceConnect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="16dp"
+        android:text="Подключить BT" />
+
+      <ImageView
+        android:id="@+id/iv_download"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginLeft="16dp"
+        android:src="@drawable/ic_download_pause"
+        />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <TextView
+      android:id="@+id/receive_text"
+      android:layout_width="match_parent"
+      android:layout_height="524dp"
+      android:layout_weight="2"
+      android:freezesText="true"
+      android:gravity="bottom"
+      android:scrollbars="vertical"
+      android:visibility="gone"
+      android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+
+    <View
+      android:layout_width="match_parent"
+      android:background="?android:attr/listDivider"
+      android:layout_height="2dp" />
+
+    <org.florescu.android.rangeseekbar.RangeSeekBar
+      android:id="@+id/rangeSeekBar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"/>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal">
+
+      <EditText
+        android:id="@+id/edit_speedMat"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:text="5000"
+        android:textAlignment="center"
+        android:inputType="numberDecimal"
+
+        android:singleLine="true" />
+
+      <Button
+        android:id="@+id/btn_calc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Посчитать"
+        />
+
+      <androidx.appcompat.widget.AppCompatImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_bluetooth_connected"
+        />
+
+      <TextView
+        android:id="@+id/txt_calcResult"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="0"
+        android:textAlignment="center"
+        />
+
+
+    </LinearLayout>
+
+    <com.github.mikephil.charting.charts.LineChart
+      android:id="@+id/chart1"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_above="@+id/seekBar1" />
+
+  </androidx.appcompat.widget.LinearLayoutCompat>
+
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

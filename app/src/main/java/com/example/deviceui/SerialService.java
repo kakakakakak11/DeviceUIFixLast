@@ -52,6 +52,7 @@ public class SerialService extends Service implements SerialListener {
    * Lifecylce
    */
   public SerialService() {
+    System.out.println("SerialService => constructor");
     mainLooper = new Handler(Looper.getMainLooper());
     binder = new SerialBinder();
     queue1 = new LinkedList<>();
@@ -59,7 +60,22 @@ public class SerialService extends Service implements SerialListener {
   }
 
   @Override
+  public void onCreate() {
+    super.onCreate();
+    System.out.println("SerialService => onCreate");
+  }
+
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    System.out.println("SerialService => onStartCommand");
+    System.out.println("onStartCommand " + intent);
+
+    return super.onStartCommand(intent, flags, startId);
+  }
+
+  @Override
   public void onDestroy() {
+    System.out.println("SerialService => onDestroy");
     cancelNotification();
     disconnect();
     super.onDestroy();
@@ -68,6 +84,7 @@ public class SerialService extends Service implements SerialListener {
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {
+    System.out.println("SerialService => onBind");
     return binder;
   }
 
@@ -75,18 +92,25 @@ public class SerialService extends Service implements SerialListener {
    * Api
    */
   public void connect(SerialListener listener, String notificationMsg) {
+    System.out.println("SerialService => connect");
+
     this.listener = listener;
     connected = true;
     this.notificationMsg = notificationMsg;
   }
 
   public void disconnect() {
+    System.out.println("SerialService => disconnect");
+
     listener = null;
     connected = false;
     notificationMsg = null;
   }
 
   public void attach(SerialListener listener) {
+    System.out.println("SerialService => attach");
+
+
     if(Looper.getMainLooper().getThread() != Thread.currentThread())
       throw new IllegalArgumentException("not in main thread");
     cancelNotification();
@@ -118,6 +142,8 @@ public class SerialService extends Service implements SerialListener {
   }
 
   public void detach() {
+    System.out.println("SerialService => detach");
+
     if(connected)
       createNotification();
     // items already in event queue (posted before detach() to mainLooper) will end up in queue1
@@ -163,6 +189,7 @@ public class SerialService extends Service implements SerialListener {
    * SerialListener
    */
   public void onSerialConnect() {
+    System.out.println("SerialService => onSerialConnect");
     if(connected) {
       synchronized (this) {
         if (listener != null) {
@@ -181,6 +208,8 @@ public class SerialService extends Service implements SerialListener {
   }
 
   public void onSerialConnectError(Exception e) {
+    System.out.println("SerialService => onSerialConnectError");
+
     if(connected) {
       synchronized (this) {
         if (listener != null) {

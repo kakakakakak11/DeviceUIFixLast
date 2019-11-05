@@ -15,6 +15,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -56,9 +57,9 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private Connected connected = Connected.False;
 
     // Graph
+    private GraphView graphView;
     private LineGraphSeries<DataPoint> mSeries1;
-    private LineGraphSeries<DataPoint> mSeries2;
-    private double graph2LastXValue = 5d;
+    private double graph2LastXValue = 1d;
     private int amountData = 0;
     private int amountBytes = 0;
     private int[] lastData;
@@ -70,7 +71,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private PahoMqttClient pahoMqttClient;
 
     //
-    private int[] inputData = new int[1000];
     private int minX = 0;
     private int maxX = 999;
 
@@ -106,6 +106,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         else
             getActivity().startService(new Intent(getActivity(), SerialService.class)); // prevents service destroy on unbind from recreated activity caused by orientation change
     }
+
+
 
     @Override
     public void onStop() {
@@ -165,57 +167,41 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
 
 //        GraphView graph = (GraphView) findViewById(R.id.graph);
-        GraphView graph = (GraphView) view.findViewById(R.id.graph);
+        graphView = (GraphView) view.findViewById(R.id.graph);
         mSeries1 = new LineGraphSeries<>();
-        mSeries1.setColor(Color.CYAN);
+        mSeries1.setColor(Color.BLUE);
 //        mSeries2 = new LineGraphSeries<>();
 //        mSeries2.setColor(Color.RED);
 
-        graph.getViewport().setYAxisBoundsManual(true);
-//        graph.getViewport().setMinY(minY);
-        graph.getViewport().setMaxY(260);
 
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(2000);
-
+        graphView.getViewport().setMinY(0);
+        graphView.getViewport().setMaxY(260);
+        graphView.getViewport().setXAxisBoundsManual(false);
+        graphView.getViewport().setMinX(0);
+        graphView.getViewport().setMaxX(999);
+        graphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
         // enable scaling and scrolling
-        graph.getViewport().setScalable(true);
-        graph.getViewport().setScalableY(true);
-
-        graph.getViewport().setBackgroundColor(Color.LTGRAY);
-        graph.getGridLabelRenderer().setGridColor(Color.GREEN);
-        graph.getGridLabelRenderer().setHorizontalLabelsVisible(true);
+        graphView.getViewport().setYAxisBoundsManual(false);
+        graphView.getViewport().setScalable(true);
+        graphView.getViewport().setScalableY(true);
+        graphView.getViewport().setBackgroundColor(Color.WHITE);
+        graphView.getGridLabelRenderer().setGridColor(Color.CYAN);
+//        graphView.getGridLabelRenderer().setHorizontalLabelsVisible(true);
 //        graph.getGridLabelRenderer().setNumVerticalLabels(countVertical);
-
-        graph.getViewport().setScalable(true);
-
-        // activate horizontal scrolling
-        graph.getViewport().setScrollable(true);
-
-        // activate horizontal and vertical zooming and scrolling
-        graph.getViewport().setScalableY(true);
-
-        // activate vertical scrolling
-        graph.getViewport().setScrollableY(true);
-
-//        graph.addSeries(mSeries2);
-        graph.addSeries(mSeries1);
+        graphView.getViewport().setScalable(true);
+        graphView.getViewport().setScrollable(true);
+        graphView.getViewport().setScalableY(true);
+        graphView.getViewport().setScrollableY(true);
+        graphView.addSeries(mSeries1);
 
 
         // MQTT client
         pahoMqttClient = new PahoMqttClient();
-        client = pahoMqttClient.getMqttClient(this.getContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
 
-//        final String topic = "/topic";
-//        try {
-//            pahoMqttClient.subscribe(client, topic, 1);
-//        } catch (MqttException e) {
-//            e.printStackTrace();
-//        }
+        final String client_id = "bt_device";
+//        client = pahoMqttClient.getMqttClient(this.getContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
+        client = pahoMqttClient.getMqttClient(this.getContext(), Constants.MQTT_BROKER_URL, client_id);
 
-
-        //
 
         TextView edit_speedMat = (TextView) view.findViewById(R.id.edit_speedMat);
         TextView txt_calcResult = (TextView) view.findViewById(R.id.txt_calcResult);
@@ -257,7 +243,11 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 minX = min;
                 maxX = max;
 
-                Toast.makeText(view.getContext(), "Min=" + min + "\n" + "Max=" + max, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(view.getContext(), "Min=" + min + "\n" + "Max=" + max, Toast.LENGTH_SHORT).show();
+
+                Toast info = Toast.makeText(view.getContext(), "[ " + min + " - " + max + " ]"  + "\n" + (max - min), Toast.LENGTH_SHORT);
+                info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 200);
+                info.show();
             }
         });
 
@@ -302,10 +292,18 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
             String deviceName = device.getName() != null ? device.getName() : device.getAddress();
             status("connecting...");
+
+            System.out.println("Connecting to " + deviceName + " | address " + deviceAddress);
+
             connected = Connected.Pending;
             socket = new SerialSocket();
-            service.connect(this, "Connected to " + deviceName);
+            service.connect(this, "Connecting to " + deviceName);
             socket.connect(getContext(), service, device);
+
+            Toast info = Toast.makeText(getActivity().getApplicationContext(), "connecting...", Toast.LENGTH_SHORT);
+            info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
+            info.show();
+
         } catch (Exception e) {
             onSerialConnectError(e);
         }
@@ -360,12 +358,12 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         String text = "";
         int sum = 0;
 
-        for (int i = 0; i < datai.length; i++) {
-            text += " " + datai[i];
-            sum += datai[i];
-//            pBuff += i;
-//            buff[pBuff + i] = data[i];
-        }
+//        for (int i = 0; i < datai.length; i++) {
+//            text += " " + datai[i];
+//            sum += datai[i];
+////            pBuff += i;
+////            buff[pBuff + i] = data[i];
+//        }
 
 //        receiveText.append(text);
 
@@ -375,21 +373,21 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
         amountData++;
 
-        System.out.println("!!!!~~~~~~~~~> pBuff" + pBuff);
+//        System.out.println("!!!!~~~~~~~~~> pBuff" + pBuff);
 
 
         int count = 0;
-        for (int i = 0; i < datai.length; i++) {
+        for (int i = 0; i < datai.length-1; i++) {
             graph2LastXValue += 5d;
             count++;
             buff[pBuff] = datai[i];
             pBuff++;
-            mSeries1.appendData(new DataPoint(graph2LastXValue, datai[i]), true, 4096);
+            mSeries1.appendData(new DataPoint(graph2LastXValue, datai[i]), true, 999);
         }
 
         amountBytes += amountData + count;
 
-        receiveText.setText("count: " + amountData + " | bytes: " + amountBytes);
+//        receiveText.setText("count: " + amountData + " | bytes: " + amountBytes);
 //        System.out.println("~~~~~~~> count: " + amountData + " | bytes: " + amountBytes);
         System.out.println("~~~~~~~_____!!!!!!~~~> COUNT: " + count + "   dataLENGHT " + datai.length);
 //        receiveText.setText("" + sum);
@@ -410,30 +408,30 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 //
 //          pBuff = 0;
 //        }
-      if (pBuff >= 960) {
-        JSONArray arr = null;
-        try {
-          int[] tmp = new int[pBuff-1];
-          System.arraycopy(buff, 0, tmp, 0, pBuff-1);
+        if (pBuff >= 960) {
+            JSONArray arr = null;
+            try {
+                int[] tmp = new int[pBuff-1];
+                System.arraycopy(buff, 0, tmp, 0, pBuff-1);
 
-          // TODO input data
-          System.arraycopy(tmp, 0, inputData, 0, tmp.length);
+                // TODO input data
+//                System.arraycopy(tmp, 0, inputData, 0, tmp.length);
 
 
 //          arr = new JSONArray(buff);
-            arr = new JSONArray(tmp);
-          System.out.println("<~~~~~~~>    BUFF: " + arr.toString());
-          pahoMqttClient.publishMessage(client, arr.toString(), 0, Constants.PUBLISH_TOPIC);
-        } catch (JSONException e) {
-          e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-          e.printStackTrace();
-        } catch (MqttException e) {
-          e.printStackTrace();
-        }
+                arr = new JSONArray(tmp);
+                System.out.println("<~~~~~~~>    BUFF: " + arr.toString());
+                pahoMqttClient.publishMessage(client, arr.toString(), 0, Constants.PUBLISH_TOPIC);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
 
-        pBuff = 0;
-      }
+            pBuff = 0;
+        }
 
         first = false;
     }
@@ -442,6 +440,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         SpannableStringBuilder spn = new SpannableStringBuilder(str+'\n');
         spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         receiveText.append(spn);
+
+        Toast info = Toast.makeText(getActivity().getApplicationContext(), "status " + spn, Toast.LENGTH_SHORT);
+        info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 250);
+        info.show();
     }
 
     /*

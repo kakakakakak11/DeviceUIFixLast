@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -56,6 +58,7 @@ public class DevicesFragment extends ListFragment {
         getActivity().runOnUiThread(() -> { updateScan(device); });
       }
     };
+
     discoveryBroadcastReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -84,12 +87,14 @@ public class DevicesFragment extends ListFragment {
 
     if(getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH))
       bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
     listAdapter = new ArrayAdapter<BluetoothDevice>(getActivity(), 0, listItems) {
       @Override
       public View getView(int position, View view, ViewGroup parent) {
         BluetoothDevice device = listItems.get(position);
         if (view == null)
           view = getActivity().getLayoutInflater().inflate(R.layout.device_list_item, parent, false);
+
         TextView text1 = view.findViewById(R.id.text1);
         TextView text2 = view.findViewById(R.id.text2);
 
@@ -109,7 +114,9 @@ public class DevicesFragment extends ListFragment {
     setListAdapter(null);
     View header = getActivity().getLayoutInflater().inflate(R.layout.device_list_header, null, false);
     getListView().addHeaderView(header, null, false);
+
     setEmptyText("initializing...");
+
     ((TextView) getListView().getEmptyView()).setTextSize(18);
     setListAdapter(listAdapter);
   }
@@ -118,6 +125,7 @@ public class DevicesFragment extends ListFragment {
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     inflater.inflate(R.menu.menu_devices, menu);
     this.menu = menu;
+
     if (bluetoothAdapter == null) {
       menu.findItem(R.id.bt_settings).setEnabled(false);
       menu.findItem(R.id.ble_scan).setEnabled(false);
@@ -134,6 +142,12 @@ public class DevicesFragment extends ListFragment {
       setEmptyText("<bluetooth LE not supported>");
     } else if(!bluetoothAdapter.isEnabled()) {
       setEmptyText("<bluetooth is disabled>");
+
+      Toast info = Toast.makeText(getActivity().getApplicationContext(), "<bluetooth is disabled>", Toast.LENGTH_SHORT);
+      info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
+      info.show();
+
+
       if (menu != null) {
         listItems.clear();
         listAdapter.notifyDataSetChanged();
@@ -162,6 +176,7 @@ public class DevicesFragment extends ListFragment {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     int id = item.getItemId();
+
     if (id == R.id.ble_scan) {
       startScan();
       return true;
@@ -186,6 +201,7 @@ public class DevicesFragment extends ListFragment {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (getActivity().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         scanState = ScanState.NONE;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.location_permission_title);
         builder.setMessage(R.string.location_permission_message);
@@ -216,8 +232,16 @@ public class DevicesFragment extends ListFragment {
     listItems.clear();
     listAdapter.notifyDataSetChanged();
     setEmptyText("<scanning...>");
+
+
+    Toast info = Toast.makeText(getActivity().getApplicationContext(), "<scanning...>", Toast.LENGTH_SHORT);
+    info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
+    info.show();
+
+
     menu.findItem(R.id.ble_scan).setVisible(false);
     menu.findItem(R.id.ble_scan_stop).setVisible(true);
+
     if(scanState == ScanState.LESCAN) {
       leScanStopHandler.postDelayed(this::stopScan, LESCAN_PERIOD);
       new AsyncTask<Void, Void, Void>() {
@@ -260,6 +284,11 @@ public class DevicesFragment extends ListFragment {
     if(scanState == ScanState.NONE)
       return;
     setEmptyText("<no bluetooth devices found>");
+
+    Toast info = Toast.makeText(getActivity().getApplicationContext(), "<no bluetooth devices found>", Toast.LENGTH_SHORT);
+    info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
+    info.show();
+
     if(menu != null) {
       menu.findItem(R.id.ble_scan).setVisible(true);
       menu.findItem(R.id.ble_scan_stop).setVisible(false);
@@ -285,6 +314,7 @@ public class DevicesFragment extends ListFragment {
     BluetoothDevice device = listItems.get(position-1);
     Bundle args = new Bundle();
     args.putString("device", device.getAddress());
+
     Fragment fragment = new TerminalFragment();
     fragment.setArguments(args);
     getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();

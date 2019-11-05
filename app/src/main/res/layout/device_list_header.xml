@@ -6,12 +6,19 @@
     android:background="?android:attr/listDivider"
     android:orientation="vertical">
 
+<!--    <TextView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        android:layout_marginBottom="12dp"-->
+<!--        android:gravity="center"-->
+<!--        android:text="@string/devices"-->
+<!--        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />-->
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
-        android:gravity="center"
-        android:text="@string/devices"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center"
+      android:visibility="gone"
+      android:text="@string/devices"
+      android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 </LinearLayout>

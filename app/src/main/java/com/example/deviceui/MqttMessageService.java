@@ -84,7 +84,7 @@ public class MqttMessageService extends Service {
                         .setContentTitle(topic)
                         .setContentText(msg);
 //        Intent resultIntent = new Intent(this, MainActivity.class);
-        Intent resultIntent = new Intent(this, InputActivity.class);
+        Intent resultIntent = new Intent(this, InputCloudActivity.class);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);

@@ -73,6 +73,15 @@
         android:width="220dp"
         android:text="@string/button_bluetooth_text" />
 
+      <Button
+        android:id="@+id/btn_find"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="15dp"
+        android:width="220dp"
+        android:text="find" />
+
 
       <org.florescu.android.rangeseekbar.RangeSeekBar
         android:id="@+id/rangeSeekBar"
@@ -91,6 +100,7 @@
           android:layout_height="match_parent"
           android:layout_weight="1"
           android:text="5000"
+          android:visibility="invisible"
           android:inputType="text|textNoSuggestions"
           android:singleLine="true" />
 
@@ -98,6 +108,7 @@
           android:id="@+id/btn_calc"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
+          android:visibility="invisible"
           android:text="Посчитать"
           />
 
@@ -105,17 +116,12 @@
 
 
 
-
-
-      <com.jjoe64.graphview.GraphView
-        android:id="@+id/graph"
+      <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart1"
         android:layout_width="match_parent"
-        android:layout_marginTop="5dp"
-        android:layout_height="200dip"
-        android:layout_weight="1"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="223dp" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/seekBar1" />
+
 
     </LinearLayout>
 
