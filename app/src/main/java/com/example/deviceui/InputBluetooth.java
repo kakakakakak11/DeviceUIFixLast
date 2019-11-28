@@ -3,29 +3,33 @@ package com.example.deviceui;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LimitLine;
@@ -38,34 +42,36 @@ import com.github.mikephil.charting.formatter.IFillFormatter;
 import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.Utils;
-import com.jjoe64.graphview.series.DataPoint;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.florescu.android.rangeseekbar.RangeSeekBar;
 import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
 
 import static android.app.PendingIntent.getActivity;
 
 public class InputBluetooth extends AppCompatActivity implements ServiceConnection, SerialListener {
 
-  boolean connectionBt = false;
-  boolean connectionServer = false;
-
-
   // device name "BUFD_BLE-62BE
   private String deviceAddress = "80:1F:12:B9:62:BE";
 
   // BT
-  private enum Connected { False, Pending, True }
+  private enum Connected {False, Pending, True, Disabled}
   private SerialSocket socket;
   private SerialService service;
   private boolean initialStart = true;
   private Connected connected = Connected.False;
+  private boolean inputEnabled = false;
+  private int countPackages = 0;
+  private int countCharts = 0;
 
   // MQTT
   private MqttAndroidClient client;
@@ -73,16 +79,13 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   private PahoMqttClient pahoMqttClient;
   boolean connectionMqtt = false;
 
-
   private int pBuff = 0;
-  private int[] buff = new int[1000];
+  private int[] buff = new int[1500];
 
   // chart
   int minX = 0;
   int maxX = 0;
   private LineChart chart;
-  private SeekBar seekBarX, seekBarY;
-  private TextView tvX, tvY;
   private Typeface tfRegular;
   private Typeface tfLight;
   // limit line
@@ -91,8 +94,22 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
 
   private int amountData = 0;
   private int amountBytes = 0;
-  private int[] lastData;
   private boolean first = true;
+
+
+  // enable bluetooth
+  private void configureBluetooth() {
+    BluetoothManager btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+    BluetoothAdapter btAdapter = btManager.getAdapter();
+
+    if (btAdapter != null && !btAdapter.isEnabled()) {
+      System.out.println("bt disabled");
+      connected = Connected.Disabled;
+
+      Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+      startActivityForResult(enableIntent, 1);
+    }
+  }
 
   /*
    * Lifecycle
@@ -101,6 +118,8 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_input_bluetooth);
+
+    configureBluetooth();
 
 
     Button btn_connect = (Button) findViewById(R.id.btn_deviceConnect);
@@ -111,49 +130,118 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       }
     });
 
+    TextView edit_speedMat = (TextView) findViewById(R.id.edit_speedMat);
+    TextView edit_hzs = (TextView) findViewById(R.id.edit_hzs);
+    TextView txt_calcResult = (TextView) findViewById(R.id.txt_calcResult);
+    Button btn_calc = (Button) findViewById(R.id.btn_calc);
+    btn_calc.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        // TODO Расчет значений
+        // кол. выбранные точек * (1/42 * 10^6) * скорость звука материала
+        try {
+          float speed = Float.parseFloat(edit_speedMat.getText().toString());
+          float hzs = Float.parseFloat(edit_hzs.getText().toString());
+          float result = Calculation.calc(minX, maxX, speed, hzs);
+          txt_calcResult.setText("" + result + " (мм)");
+        } catch (Exception e) {
+          System.out.println("ERROR calculation" + e);
+        }
+      }
+    });
+
 //    if(service != null) {
 //      System.out.println("onStart -> attach");
 //      service.attach(this);
 //    }
 //    else {
-      System.out.println("onStart -> startService");
+    System.out.println("onStart -> startService");
 
-      Intent intent = new Intent(this, SerialService.class);
-      startService(intent);
-//      this.startService(new Intent(this, SerialService.class)); // prevents service destroy on unbind from recreated activity caused by orientation change
+    this.startService(new Intent(this, SerialService.class)); // prevents service destroy on unbind from recreated activity caused by orientation change
 //    }
 
-    // MQTT client
-    pahoMqttClient = new PahoMqttClient();
-
-    final String client_id = "bt_device";
-//        client = pahoMqttClient.getMqttClient(this.getContext(), Constants.MQTT_BROKER_URL, Constants.CLIENT_ID);
-    client = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, client_id);
-
-
-
+    configMqtt();
     configChart();
 
+    int[] init = new int[1000];
+    Arrays.fill(init, 1);
+    updateChartData(init);
   }
 
-  private void configChart() {
-    limitMin = new LimitLine(25f, "Upper Limit");
-    limitMin.setLineWidth(4f);
-    limitMin.enableDashedLine(20f, 10f, 0f);
-    limitMin.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
-    limitMin.setTextSize(10f);
-    limitMin.setTypeface(tfRegular);
+  void configMqtt() {
+    pahoMqttClient = new PahoMqttClient();
+    final String client_id = "bt_" + (new Random().nextInt(100));
+    client = pahoMqttClient.getMqttClient(getApplicationContext(), Constants.MQTT_BROKER_URL, client_id);
+    client.setCallback(new MqttCallbackExtended() {
+      @Override
+      public void connectComplete(boolean b, String s) {
+        System.out.println("connect completed");
+        connectionMqtt = true;
+        updateStatus();
+      }
 
+      @Override
+      public void connectionLost(Throwable throwable) {
+        System.out.println("connection lost !!!!");
+        connectionMqtt = false;
+        updateStatus();
+        try {
+          client.connect();
+//          connectionMqtt = true;
+//          updateStatus();
+        } catch (MqttException e) {
+          e.printStackTrace();
+        }
+      }
+
+      @Override
+      public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
+
+      }
+
+      @Override
+      public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+      }
+    });
+  }
+
+  void updateStatus() {
+    Button btn_connection = (Button) findViewById(R.id.btn_connection);
+    ImageView iv_bt = (ImageView) findViewById(R.id.iv_bt);
+    ImageView iv_mqtt = (ImageView) findViewById(R.id.iv_mqtt);
+
+    // bt
+    if (connected == Connected.True) {
+      iv_bt.setImageResource(R.drawable.ic_bluetooth_connected);
+    }
+    if (connected == Connected.False) {
+      iv_bt.setImageResource(R.drawable.ic_bluetooth);
+    }
+    if (connected == Connected.Pending) {
+      iv_bt.setImageResource(R.drawable.ic_bluetooth_search);
+    }
+    if (connected == Connected.Disabled) {
+      iv_bt.setImageResource(R.drawable.ic_bluetooth_disabled);
+    }
+
+    // mqtt
+    if (connectionMqtt) {
+      iv_mqtt.setImageResource(R.drawable.ic_cloud_connected);
+    } else {
+      iv_mqtt.setImageResource(R.drawable.ic_cloud_off);
+    }
+  }
+
+
+  private void configChart() {
     RangeSeekBar rangeSeekBar = (RangeSeekBar) findViewById(R.id.rangeSeekBar);
+    rangeSeekBar.setTextAboveThumbsColor(Color.BLACK);
     rangeSeekBar.setRangeValues(0, 999);
     rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
       @Override
       public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
-//        Number min_value = bar.getSelectedMinValue();
-//        Number max_value = bar.getSelectedMaxValue();
-
-        minX = (int)bar.getSelectedMinValue();
-        maxX = (int)bar.getSelectedMaxValue();
+        minX = (int) bar.getSelectedMinValue();
+        maxX = (int) bar.getSelectedMaxValue();
         limitMin.setLimit(minX);
         limitMax.setLimit(maxX);
         chart.invalidate();
@@ -174,12 +262,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       // set listeners
 //      chart.setOnChartValueSelectedListener(this);
       chart.setDrawGridBackground(false);
-      // create marker to display box when values are selected
-//      MyMarkerView mv = new MyMarkerView(this, R.layout.custom_marker_view);
-      // Set the marker to the chart
-//      mv.setChartView(chart);
-//      chart.setMarker(mv);
-
       // enable scaling and dragging
       chart.setDragEnabled(true);
 //      chart.setScaleEnabled(true);
@@ -193,7 +275,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     XAxis xAxis;
     {   // // X-Axis Style // //
       xAxis = chart.getXAxis();
-
       // vertical grid lines
       xAxis.enableGridDashedLine(10f, 10f, 0f);
     }
@@ -210,22 +291,28 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
 
       // axis range
       yAxis.setAxisMaximum(255f);
-      yAxis.setAxisMinimum(-30f);
+      yAxis.setAxisMinimum(0f);
     }
 
-
     {   // // Create Limit Lines // //
-      LimitLine llXAxis = new LimitLine(9f, "Index 10");
+      LimitLine llXAxis = new LimitLine(9f, "");
       llXAxis.setLineWidth(4f);
 //      llXAxis.enableDashedLine(10f, 10f, 0f);
       llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
       llXAxis.setTextSize(10f);
       llXAxis.setTypeface(tfRegular);
 
-      limitMax = new LimitLine(-30f, "Lower Limit");
-      limitMax.setLineWidth(4f);
-      limitMax.enableDashedLine(10f, 10f, 0f);
-      limitMax.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_BOTTOM);
+      limitMin = new LimitLine(0, "min");
+      limitMin.setLineWidth(2f);
+      limitMin.enableDashedLine(10f, 10f, 0f);
+      limitMin.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+      limitMin.setTextSize(10f);
+      limitMin.setTypeface(tfRegular);
+
+      limitMax = new LimitLine(999f, "max");
+      limitMax.setLineWidth(2f);
+      limitMax.enableDashedLine(10f, 10f, 10f);
+      limitMax.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
       limitMax.setTextSize(10f);
       limitMax.setTypeface(tfRegular);
 
@@ -241,81 +328,12 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
 
     // draw points over time
     chart.animateX(1500);
-
     // get the legend (only possible after setting data)
     Legend l = chart.getLegend();
 
 //     draw legend entries as lines
     l.setForm(Legend.LegendForm.LINE);
 
-  }
-
-  private void setChartData(int count, float range) {
-    ArrayList<Entry> values = new ArrayList<>();
-
-    for (int i = 0; i < count; i++) {
-      float val = (float) (Math.random() * range) - 30;
-      values.add(new Entry(i, val, getResources().getDrawable(R.drawable.star)));
-    }
-
-    LineDataSet set1;
-
-    if (chart.getData() != null &&
-        chart.getData().getDataSetCount() > 0) {
-      set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
-      set1.setValues(values);
-//      set2.notifyDataSetChanged();
-
-//      set1.notifyDataSetChanged();
-      chart.getData().notifyDataChanged();
-      chart.notifyDataSetChanged();
-    } else {
-      // create a dataset and give it a type
-      set1 = new LineDataSet(values, "DataSet 1");
-      set1.setColor(Color.RED);
-      set1.setDrawIcons(false);
-      // draw dashed line
-//      set1.enableDashedLine(10f, 5f, 0f);
-      set1.setDrawCircles(false);
-      // draw points as solid circles
-      set1.setDrawCircleHole(false);
-
-
-      // customize legend entry
-      set1.setFormLineWidth(1f);
-      set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-      set1.setFormSize(15.f);
-      // text size of values
-      set1.setValueTextSize(9f);
-
-      // draw selection line as dashed
-      set1.enableDashedHighlightLine(10f, 5f, 0f);
-
-      // set the filled area
-//      set1.setDrawFilled(true);
-//      set1.setFillFormatter(new IFillFormatter() {
-//        @Override
-//        public float getFillLinePosition(ILineDataSet dataSet, LineDataProvider dataProvider) {
-//          return chart.getAxisLeft().getAxisMinimum();
-//        }
-//      });
-
-      // set color of filled area
-//      if (Utils.getSDKInt() >= 18) {
-//        // drawables only supported on api level 18 and above
-//        Drawable drawable = ContextCompat.getDrawable(this, R.drawable.fade_red);
-//        set1.setFillDrawable(drawable);
-//      } else {
-//        set1.setFillColor(Color.BLACK);
-//      }
-      ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-      dataSets.add(set1); // add the data sets
-      // create a data object with the data sets
-      LineData data = new LineData(dataSets);
-
-      // set data
-      chart.setData(data);
-    }
   }
 
   private void updateChartData(int[] data) {
@@ -339,7 +357,7 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       chart.invalidate();
     } else {
       // create a dataset and give it a type
-      set1 = new LineDataSet(values, "DataSet 1");
+      set1 = new LineDataSet(values, "-");
       set1.setColor(Color.GREEN);
       set1.setDrawIcons(false);
       // draw dashed line
@@ -407,18 +425,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     super.onStop();
   }
 
-//  @Override
-//  public void onAttach(Activity activity) {
-////    super.onAttach(activity);
-//    this.bindService(new Intent(getActivity(), SerialService.class), this, Context.BIND_AUTO_CREATE);
-//  }
-//
-//  @Override
-//  public void onDetach() {
-//    try { this.unbindService(this); } catch(Exception ignored) {}
-//    super.onDetach();
-//  }
-
   @Override
   public void onResume() {
     super.onResume();
@@ -430,7 +436,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
 
 
 
-
   ////////////////////////////////
   @Override
   public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -439,9 +444,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     service = ((SerialService.SerialBinder) binder).getService();
 //    if(initialStart && isResumed()) {
     if(initialStart) {
-
-      System.out.println("initial start false");
-
       initialStart = false;
       this.runOnUiThread(this::connect);
 
@@ -474,6 +476,8 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
         socket = new SerialSocket();
         socket.connect(getApplicationContext(), service, device);
 
+        updateStatus();
+
         Toast info = Toast.makeText(getApplicationContext(), "connecting...", Toast.LENGTH_SHORT);
         info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
         info.show();
@@ -495,37 +499,12 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     service.disconnect();
     socket.disconnect();
 
+    updateStatus();
+    inputEnabled = false;
+    pBuff = 0;
 
     socket = null;
   }
-
-  private void send(String str) {
-//        if(connected != Connected.True) {
-//            Toast.makeText(getActivity(), "not connected", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//        try {
-//            SpannableStringBuilder spn = new SpannableStringBuilder(str+'\n');
-//            spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorSendText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-//            receiveText.append(spn);
-//            byte[] data = (str + newline).getBytes();
-//            socket.write(data);
-//        } catch (Exception e) {
-//            onSerialIoError(e);
-//        }
-//        String msg = str.getText().toString().trim();
-    String msg = str.trim();
-//        if (!msg.isEmpty()) {
-    try {
-      pahoMqttClient.publishMessage(client, msg, 1, Constants.PUBLISH_TOPIC);
-    } catch (MqttException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-//        }
-  }
-
 
 
   private void receive(byte[] data) {
@@ -538,47 +517,70 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   private void receive(byte[] data, int[] datai) {
     System.out.println("~~~~~~~~> RECIEVE DATASIZE: " + datai.length);
 
-    amountData++;
+    int sizePackage = datai.length;
+
+    if (inputEnabled) {
+      countPackages++;
+      System.out.println("~>~>~>~>~>~>~>~>>~ COUNT PACKEGS: " + countPackages);
+
+      amountData++;
 //        System.out.println("!!!!~~~~~~~~~> pBuff" + pBuff);
 
-    int count = 0;
-    for (int i = 0; i < datai.length-1; i++) {
-      count++;
-      buff[pBuff] = datai[i];
-      pBuff++;
-    }
 
-    amountBytes += amountData + count;
+      int count = 0;
+      for (int i = 0; i < datai.length-1; i++) {
+        count++;
+        buff[pBuff] = datai[i];
+        pBuff++;
+      }
+
+      amountBytes += amountData + count;
 
 //        receiveText.setText("count: " + amountData + " | bytes: " + amountBytes);
-        System.out.println("~~~~~~~> count: " + amountData + " | bytes: " + amountBytes);
+      System.out.println("~~~~~~~> count: " + amountData + " | bytes: " + amountBytes);
 //    System.out.println("~~~~~~~_____!!!!!!~~~> COUNT: " + count + "   dataLENGHT " + datai.length);
 //        receiveText.setText("" + sum);
 
-    // mqtt send
-    if (pBuff >= 950) {
-      JSONArray arr = null;
-      try {
-        int[] tmp = new int[pBuff-1];
-        System.arraycopy(buff, 0, tmp, 0, pBuff-1);
+      // mqtt send
+//      if (pBuff >= 950) {
+      if (countPackages >= 7) {
+        JSONArray arr = null;
+        try {
+          int[] tmp = new int[pBuff-1];
+          System.arraycopy(buff, 0, tmp, 0, pBuff-1);
 
-        updateChartData(tmp);
 
-        arr = new JSONArray(tmp);
-        System.out.println("<~~~~~~~>    BUFF: " + arr.toString());
-        pahoMqttClient.publishMessage(client, arr.toString(), 0, Constants.PUBLISH_TOPIC);
-      } catch (JSONException e) {
-        e.printStackTrace();
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      } catch (MqttException e) {
-        e.printStackTrace();
+          updateChartData(tmp);
+
+          arr = new JSONArray(tmp);
+//          System.out.println("<~~~~~~~>    BUFF: " + arr.toString());
+          countCharts++;
+          System.out.println("~>~>~>~>~>~>~>~>>~~>~>~>~>~>~>~ CHARTS COUNT : " + countCharts);
+
+          pahoMqttClient.publishMessage(client, arr.toString(), 0, Constants.PUBLISH_TOPIC);
+
+        } catch (JSONException e) {
+          e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        } catch (MqttException e) {
+          e.printStackTrace();
+        }
+
+        pBuff = 0;
+        countPackages = 0;
       }
-
-      pBuff = 0;
+    } else {
+      if (sizePackage < 100) {  // last package
+        System.out.println("~>>>>>~>~>~>~>~>~~>~>~>~>~>~ Size package < 100 ");
+        inputEnabled = true;
+        countPackages = 0;
+        pBuff = 0;
+      }
     }
 
-    first = false;
+
+
   }
 
   private void status(String str) {
@@ -601,6 +603,7 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     System.out.println("onSerialConnect");
     status("connected");
     connected = Connected.True;
+    updateStatus();
   }
 
   @Override

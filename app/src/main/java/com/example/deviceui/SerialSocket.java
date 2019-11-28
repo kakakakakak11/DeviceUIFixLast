@@ -134,12 +134,10 @@ class SerialSocket extends BluetoothGattCallback {
 
     if (Build.VERSION.SDK_INT < 23) {
       Log.d(TAG, "connectGatt");
-//            gatt = device.connectGatt(context, false, this);
       gatt = device.connectGatt(context, true, this);
     } else {
       Log.d(TAG, "connectGatt,LE");
-//            gatt = device.connectGatt(context, false, this, BluetoothDevice.TRANSPORT_LE);
-      gatt = device.connectGatt(context, true, this, BluetoothDevice.TRANSPORT_LE);
+      gatt = device.connectGatt(context, false, this, BluetoothDevice.TRANSPORT_LE);
     }
 
     if (gatt == null)

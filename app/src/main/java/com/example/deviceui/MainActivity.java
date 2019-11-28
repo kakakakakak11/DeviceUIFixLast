@@ -1,5 +1,8 @@
 package com.example.deviceui;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
@@ -34,7 +37,7 @@ import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 import java.util.ArrayList;
 
-//public class MainActivity extends AppCompatActivity {
+
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
   private static final String DEBUG_TAG = "MqttService";
   public static String APP_ID = "DeviceUI";
@@ -47,13 +50,9 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
 
   int minX = 0;
   int maxX = 0;
-
   private LineChart chart;
-  private SeekBar seekBarX, seekBarY;
-  private TextView tvX, tvY;
   protected Typeface tfRegular;
   protected Typeface tfLight;
-
   // limit line
   LimitLine limitMin;
   LimitLine limitMax;
@@ -64,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     Toolbar toolbar = findViewById(R.id.toolbar);
+
+    configureBluetooth();
 
     // input data from server
     Button btnInput = (Button) findViewById(R.id.btn_input);
@@ -79,8 +80,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     Button btnBT = (Button) findViewById(R.id.btn_bt);
     btnBT.setOnClickListener(new View.OnClickListener() {
       public void onClick(View view) {
-//        setData(999, 20);
-//        chart.invalidate();
         Intent myIntent = new Intent(view.getContext(), InputBluetooth.class);
         startActivity(myIntent);
       }
@@ -94,7 +93,19 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
       }
     });
 
-    configChart();
+//    configChart();
+  }
+
+  // enable bluetooth
+  private void configureBluetooth() {
+    BluetoothManager btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+    BluetoothAdapter btAdapter = btManager.getAdapter();
+
+    if (btAdapter != null && !btAdapter.isEnabled()) {
+      System.out.println("bt disabled");
+      Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+      startActivityForResult(enableIntent, 1);
+    }
   }
 
   private void configChart() {

@@ -112,7 +112,9 @@
       <org.florescu.android.rangeseekbar.RangeSeekBar
         android:id="@+id/rangeSeekBar"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:activeColor="@color/colorAccent"
+        />
 
       <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -126,8 +128,17 @@
           android:layout_weight="2"
           android:inputType="numberDecimal"
           android:singleLine="true"
-          android:text="5000"
+          android:text="5920"
+          android:textAlignment="center" />
 
+        <EditText
+          android:id="@+id/edit_hzs"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_weight="2"
+          android:inputType="numberDecimal"
+          android:singleLine="true"
+          android:text="0"
           android:textAlignment="center" />
 
         <Button

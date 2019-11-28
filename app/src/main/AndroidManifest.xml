@@ -21,7 +21,7 @@
   <application
     android:allowBackup="true"
     android:icon="@mipmap/ic_launcher"
-    android:label="Device_UI"
+    android:label="DeviceUI"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:supportsRtl="true"
     android:theme="@style/AppTheme"
@@ -29,7 +29,7 @@
     <activity android:name=".InputBluetooth"></activity>
     <activity
       android:name=".DeviceActivity"
-      android:label="Device_UI"
+      android:label="DeviceUI"
       android:theme="@style/AppTheme.NoActionBar" />
     <activity
       android:name=".InputCloudActivity"

@@ -80,47 +80,48 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="15dp"
         android:width="220dp"
+        android:visibility="gone"
         android:text="find" />
 
 
-      <org.florescu.android.rangeseekbar.RangeSeekBar
-        android:id="@+id/rangeSeekBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-      </org.florescu.android.rangeseekbar.RangeSeekBar>
+<!--      <org.florescu.android.rangeseekbar.RangeSeekBar-->
+<!--        android:id="@+id/rangeSeekBar"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content">-->
+<!--      </org.florescu.android.rangeseekbar.RangeSeekBar>-->
 
-      <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+<!--      <LinearLayout-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content">-->
 
-        <EditText
-          android:id="@+id/edit_speedMat"
-          android:layout_width="0dp"
-          android:layout_height="match_parent"
-          android:layout_weight="1"
-          android:text="5000"
-          android:visibility="invisible"
-          android:inputType="text|textNoSuggestions"
-          android:singleLine="true" />
+<!--        <EditText-->
+<!--          android:id="@+id/edit_speedMat"-->
+<!--          android:layout_width="0dp"-->
+<!--          android:layout_height="match_parent"-->
+<!--          android:layout_weight="1"-->
+<!--          android:text="5000"-->
+<!--          android:visibility="invisible"-->
+<!--          android:inputType="text|textNoSuggestions"-->
+<!--          android:singleLine="true" />-->
 
-        <Button
-          android:id="@+id/btn_calc"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:visibility="invisible"
-          android:text="Посчитать"
-          />
+<!--        <Button-->
+<!--          android:id="@+id/btn_calc"-->
+<!--          android:layout_width="wrap_content"-->
+<!--          android:layout_height="wrap_content"-->
+<!--          android:visibility="invisible"-->
+<!--          android:text="Посчитать"-->
+<!--          />-->
 
-      </LinearLayout>
+<!--      </LinearLayout>-->
 
 
 
-      <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/chart1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/seekBar1" />
+<!--      <com.github.mikephil.charting.charts.LineChart-->
+<!--        android:id="@+id/chart1"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_above="@+id/seekBar1" />-->
 
 
     </LinearLayout>

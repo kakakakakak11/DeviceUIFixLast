@@ -1,10 +1,14 @@
 package com.example.deviceui;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,7 +39,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
+
 
 
 public class InputCloudActivity extends AppCompatActivity {
@@ -43,12 +49,18 @@ public class InputCloudActivity extends AppCompatActivity {
   private String TAG = "MainActivity";
   private PahoMqttClient pahoMqttClient;
 
+  ServiceConnection sConn;
+  Intent intent;
+  MqttMessageService mqttService;
+  boolean bound = false;
+
   //  private Button subscribe, unSubscribe;
   Button connection;
   ImageView iv_status;
 
   int minX = 0;
   int maxX = 0;
+  private int[] chartData;
   private LineChart chart;
   protected Typeface tfRegular;
   protected Typeface tfLight;
@@ -60,6 +72,13 @@ public class InputCloudActivity extends AppCompatActivity {
   final String TOPIC = "/topic";
   boolean connectionMqtt = false;
   boolean download = false;
+
+  enum Dir {
+    UP,
+    DOWN,
+    NONE,
+    EQUAL
+  }
 
 
   @Override
@@ -91,6 +110,7 @@ public class InputCloudActivity extends AppCompatActivity {
         connectionMqtt = false;
         updateStatus();
         try {
+          client.connect();
           pahoMqttClient.subscribe(client, TOPIC, 1);
           updateStatus();
         } catch (MqttException e) {
@@ -100,7 +120,7 @@ public class InputCloudActivity extends AppCompatActivity {
 
       @Override
       public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-//        System.out.println("~~~~~~> Input: " + s + " Value: " + new String(mqttMessage.getPayload()));
+  //        System.out.println("~~~~~~> Input: " + s + " Value: " + new String(mqttMessage.getPayload()));
         System.out.println("~ arrived client ID: " + client_id);
         String msg = new String(mqttMessage.getPayload());
         JSONArray arr = new JSONArray(new String(mqttMessage.getPayload()));
@@ -122,6 +142,7 @@ public class InputCloudActivity extends AppCompatActivity {
 
 
     TextView edit_speedMat = (TextView) findViewById(R.id.edit_speedMat);
+    TextView edit_hzs = (TextView) findViewById(R.id.edit_hzs);
     TextView txt_calcResult = (TextView) findViewById(R.id.txt_calcResult);
     Button btn_calc = (Button) findViewById(R.id.btn_calc);
     btn_calc.setOnClickListener(new View.OnClickListener() {
@@ -131,9 +152,12 @@ public class InputCloudActivity extends AppCompatActivity {
         // кол. выбранные точек * (1/42 * 10^6) * скорость звука материала
         try {
           float speed = Float.parseFloat(edit_speedMat.getText().toString());
-          float count = (maxX - minX);
-          float result = count * (float) (1 / (42f * Math.pow(10, 6)) * speed);
-          txt_calcResult.setText("" + result);
+//          float x1 = (float)((maxX - minX) * (1 / (37.8f * Math.pow(10, 6))));
+//          float x2 = (float)(x1 - (20f * (Math.pow(10, -6))));
+//          float result = (((x1 - x2) / 2 ) * speed) * 1000;
+          float hzs = Float.parseFloat(edit_hzs.getText().toString());
+          float result = Calculation.calc(minX, maxX, speed, hzs);
+          txt_calcResult.setText("" + result + " (мм)");
         } catch (Exception e) {
           System.out.println("ERROR calculation" + e);
         }
@@ -143,6 +167,8 @@ public class InputCloudActivity extends AppCompatActivity {
 
     // Range Seek bar
     RangeSeekBar rangeSeekBar = (RangeSeekBar) findViewById(R.id.rangeSeekBar);
+    rangeSeekBar.setSelectedMinValue(28);
+    rangeSeekBar.setSelectedMaxValue(785);
     rangeSeekBar.setRangeValues(0, 999);
 
     rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
@@ -162,43 +188,46 @@ public class InputCloudActivity extends AppCompatActivity {
     btn_connection.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-//        connect();
         onConnectionHandler();
       }
     });
 
 
-//    subscribe.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-//        String topic = TOPIC;
-//        if (!topic.isEmpty()) {
-//          try {
-//            pahoMqttClient.subscribe(client, topic, 1);
-//          } catch (MqttException e) {
-//            e.printStackTrace();
-//          }
-//        }
-//      }
-//    });
-//
-//    unSubscribe.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View v) {
-////        String topic = unSubscribeTopic.getText().toString().trim();
-//        String topic = TOPIC;
-//        if (!topic.isEmpty()) {
-//          try {
-//            pahoMqttClient.unSubscribe(client, topic);
-//          } catch (MqttException e) {
-//            e.printStackTrace();
-//          }
-//        }
-//      }
-//    });
+//    // start service
+//    Intent intent = new Intent(InputCloudActivity.this, MqttMessageService.class);
+//    startService(intent);
+    // bind service
 
-    Intent intent = new Intent(InputCloudActivity.this, MqttMessageService.class);
-    startService(intent);
+//    Intent intent = new Intent(this, MqttMessageService.class);
+//    sConn = new ServiceConnection() {
+//      @Override
+//      public void onBindingDied(ComponentName name) {
+//        System.out.println("~~~~~~~~~~~~~~> onBindingDied " + name);
+//
+//      }
+//
+//      @Override
+//      public void onNullBinding(ComponentName name) {
+//
+//      }
+//
+//      @Override
+//      public void onServiceConnected(ComponentName name, IBinder service) {
+//        System.out.println("~~~~~~~~~~~~~~> OnSERVICECONNECTED " + service);
+//        Log.d(TAG, "MainActivity onServiceConnected");
+////        mqttService = ((MqttMessageService) binder).getService();
+//        bound = true;
+//      }
+//
+//      @Override
+//      public void onServiceDisconnected(ComponentName name) {
+//        System.out.println("~~~~~~~~~~~~~~> OnSERVICE DISCONNECTED " + name);
+//      }
+//    };
+
+    int[] init = new int[1000];
+    Arrays.fill(init, 1);
+    updateChartData(init);
   }
 
 
@@ -273,36 +302,53 @@ public class InputCloudActivity extends AppCompatActivity {
   }
 
 
-  @Override
-  protected void onResume() {
-    System.out.println("onResume");
-    super.onResume();
-  }
+  private void configChart() {
+    RangeSeekBar rangeSeekBar = (RangeSeekBar) findViewById(R.id.rangeSeekBar);
+    rangeSeekBar.setRangeValues(0, 999);
+    rangeSeekBar.setTextAboveThumbsColor(Color.BLACK);
+    rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
+      @Override
+      public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
+        minX = (int) bar.getSelectedMinValue();
+        maxX = (int) bar.getSelectedMaxValue();
+        limitMin.setLimit(minX);
+        limitMax.setLimit(maxX);
+        chart.invalidate();
+      }
+    });
 
-  void configChart() {
     tfRegular = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
     tfLight = Typeface.createFromAsset(getAssets(), "OpenSans-Light.ttf");
 
-    {   // Chart Style //
+    {   // // Chart Style // //
       chart = findViewById(R.id.chart1);
+      // background color
       chart.setBackgroundColor(Color.WHITE);
+//      chart.setBackgroundColor(Color.parseColor("#f5f5f5"));
+      // disable description text
       chart.getDescription().setEnabled(false);
       // enable touch gestures
       chart.setTouchEnabled(true);
       // set listeners
 //      chart.setOnChartValueSelectedListener(this);
       chart.setDrawGridBackground(false);
+      // enable scaling and dragging
       chart.setDragEnabled(true);
+//      chart.setScaleEnabled(true);
       chart.setScaleXEnabled(true);
+      // chart.setScaleYEnabled(true);
+
       // force pinch zoom along both axis
       chart.setPinchZoom(true);
     }
+
     XAxis xAxis;
     {   // // X-Axis Style // //
       xAxis = chart.getXAxis();
       // vertical grid lines
       xAxis.enableGridDashedLine(10f, 10f, 0f);
     }
+
     YAxis yAxis;
     {   // // Y-Axis Style // //
       yAxis = chart.getAxisLeft();
@@ -312,11 +358,13 @@ public class InputCloudActivity extends AppCompatActivity {
       yAxis.enableGridDashedLine(10f, 10f, 0f);
       // axis range
       yAxis.setAxisMaximum(255f);
-      yAxis.setAxisMinimum(-30f);
+      yAxis.setAxisMinimum(0f);
     }
+
     {   // // Create Limit Lines // //
-      LimitLine llXAxis = new LimitLine(9f, "Index 10");
+      LimitLine llXAxis = new LimitLine(9f, "");
       llXAxis.setLineWidth(4f);
+//      llXAxis.enableDashedLine(10f, 10f, 0f);
       llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
       llXAxis.setTextSize(10f);
       llXAxis.setTypeface(tfRegular);
@@ -334,18 +382,182 @@ public class InputCloudActivity extends AppCompatActivity {
       limitMax.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
       limitMax.setTextSize(10f);
       limitMax.setTypeface(tfRegular);
+
       // draw limit lines behind data instead of on top
       yAxis.setDrawLimitLinesBehindData(true);
       xAxis.setDrawLimitLinesBehindData(true);
+
       // add limit lines
       xAxis.addLimitLine(limitMin);
       xAxis.addLimitLine(limitMax);
+      //xAxis.addLimitLine(llXAxis);
     }
 
+    // draw points over time
+    chart.animateX(1500);
     // get the legend (only possible after setting data)
     Legend l = chart.getLegend();
-    // draw legend entries as lines
+
+//     draw legend entries as lines
     l.setForm(Legend.LegendForm.LINE);
+
+  }
+
+  int dist(float x1, float x2) {
+    return  (int)Math.pow(Math.sqrt(x1 - x2), 2);
+  }
+
+
+  float[] amplifier(int[] data) {
+    int len = data.length;
+//    int[] res = new int[len];
+    float[] res = new float[len];
+
+//    System.arraycopy(data, 0, res, 0, data.length);
+    for (int i = 0; i < data.length; i++) {
+      res[i] = data[i];
+    }
+
+    int center = data[minX];
+
+    System.out.println("CENTER: " + center);
+
+//    int last = data[minX];
+//    float last = data[minX + 1];
+    float last = data[minX + 1];
+    int amp = 5;
+//    float amp = 0.01f;
+    boolean up = false;
+
+    float dist = 0;
+    boolean sign = false;
+
+    Dir dir = Dir.NONE;
+
+
+    for (int i = 0; i < len; i++) {
+      if (i > (minX + 1) && i < maxX)  {
+//        System.out.println("ITEM " + i + " v: " + data[i] + " [i+1]" + data[i+1] + " dist " + dist(data[i], data[i+1]));
+
+        switch (dir) {
+          case UP:
+//            dist = Math.abs(data[i] - data[i-1]);
+//            res[i] = data[i] + (amp * (dist + 0.5f));
+            res[i] = last + (amp * (dist));
+
+//            System.out.println("====================== UP COMPUTE ========================= + " + i);
+//            System.out.println("~> DIR UP data[i] " + data[i] + " : computed res[i]: " + res[i]);
+//          last = data[i] + (amp * dist);
+//            last = res[i];
+//            l = (amp);
+//            last = -(amp * dist);
+            last = res[i];
+            break;
+          case DOWN:
+//            dist = Math.abs(data[i] - data[i-1]);
+//            res[i] = data[i] - (amp * (dist + 0.5f));
+            res[i] = last - (amp * dist);
+
+//            System.out.println("====================== DOWN COMPUTE ========================= + " + i);
+//            System.out.println("~> DIR DOWN data[i] " + data[i] + " : computed res[i]: " + res[i]);
+//            l = -(amp);
+//          last = data[i] - (amp * dist);
+//            last = res[i];
+//            last = -(amp * dist);
+            last = res[i];
+            break;
+          case EQUAL:
+//            res[i] = res[i-1];
+            //dist = Math.abs(data[i] - data[i-1]);
+            //res[i] = data[i] - (amp * dist);
+            //res[i] = res[i-1];
+
+//            System.out.println("====================== EQUAL COMPUTE ========================= + " + i);
+
+
+
+
+            if (sign) {
+//              res[i] = data[i] + dist;
+//              res[i] = last;
+              res[i] = res[i-1];
+//              System.out.println("=> EQUAL SIGN " + sign + " data[i] " + data[i] + "  dist " + -dist  + " : computed res[i]: " + res[i]);
+            } else {
+//              res[i] = data[i] - dist;
+//              res[i] = last;
+              res[i] = res[i-1];
+//              System.out.println("=> EQUAL SIGN " + sign + " data[i] " + data[i] + "  -dist " + -dist  + " : computed res[i]: " + res[i]);
+            }
+
+
+
+//            res[i] = data[i] + last;
+//            res[i+1] = data[i] + l;
+//            dist = 0;
+//            res[i] = last;
+            break;
+        }
+
+        last = res[i];
+
+
+        if (data[i] > data[i+1]) {    // down
+          dir = Dir.DOWN;
+//          delta = -amp;
+          dist = Math.abs(data[i] - data[i+1]);
+//          last = -dist;
+          sign = false;
+
+//          System.out.println("====================== DOWN ============================");
+//          System.out.println("~> DOWN data[i] " + data[i] + " : next data[i+1]: " + data[i + 1]);
+//          System.out.println("~> DOWN dist: " + dist);
+//          System.out.println("=======================================================");
+        }
+
+        if (data[i] < data[i+1]) {    // up
+          dir = Dir.UP;
+//          delta = amp;
+          dist = Math.abs(data[i] - data[i+1]);
+
+//          last = dist;
+          sign = true;
+
+//          System.out.println("====================== UP =============================");
+//          System.out.println("~> UP data[i] " + data[i] + " : next data[i+1]: " + data[i + 1]);
+//          System.out.println("~> UP dist: " + dist);
+//          System.out.println("========================================================");
+        }
+
+        if (data[i] == data[i+1]) {
+//          System.out.println("====================== EQUAL ============================");
+          dir = Dir.EQUAL;
+//          System.out.println("=========================================================");
+        }
+
+      }
+    }
+
+    ///////////////////// OFFSET BY Y
+    float p = 0;
+
+    if (minX > 0 && maxX > 0) {
+      float d = Math.abs(data[maxX-1] - res[maxX-1]);
+      System.out.println("DISTANCE maxX " + d);
+
+      if (data[maxX-1] < res[maxX-1]) {
+        p = -d;
+      } else {
+        p = d;
+      }
+    }
+
+    for (int i = 0; i < len; i++) {
+      if (i > (minX + 1) && i < maxX) {
+        res[i] = res[i] + p;
+      }
+    }
+
+    return res;
   }
 
   private void updateChartData(int[] data) {
@@ -358,17 +570,34 @@ public class InputCloudActivity extends AppCompatActivity {
       values.add(new Entry(i, data[i]));
     }
 
+    ArrayList<Entry> values2 = new ArrayList<>();
+//    float[] data2 = amplifier(data);
+    float[] data2 = Calculation.amplifier(data, minX, maxX);
+    len = data2.length;
+
+    for (int i = 0; i < len; i++) {
+      if (i > (minX) && i < maxX) {
+        values2.add(new Entry(i, data2[i]));
+      }
+
+    }
+
     LineDataSet set1;
+    LineDataSet set2;
 
     if (chart.getData() != null && chart.getData().getDataSetCount() > 0) {
       set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
       set1.setValues(values);
+
+      set2 = (LineDataSet) chart.getData().getDataSetByIndex(1);
+      set2.setValues(values2);
+
       chart.getData().notifyDataChanged();
       chart.notifyDataSetChanged();
       chart.invalidate();
     } else {
       // create a dataset and give it a type
-      set1 = new LineDataSet(values, "");
+      set1 = new LineDataSet(values, "-");
       set1.setColor(Color.GREEN);
       set1.setDrawIcons(false);
       // draw dashed line
@@ -383,12 +612,54 @@ public class InputCloudActivity extends AppCompatActivity {
       // draw selection line as dashed
       set1.enableDashedHighlightLine(10f, 5f, 0f);
 
+      // ---
+      set2 = new LineDataSet(values2, "--");
+      set2.setColor(Color.RED);
+      set2.setDrawIcons(false);
+      set2.setDrawCircles(false);
+      set2.setDrawCircleHole(false);
+      set2.setFormLineWidth(1f);
+      set2.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
+      set2.setFormSize(15.f);
+      // text size of values
+      set2.setValueTextSize(9f);
+      // draw selection line as dashed
+      set2.enableDashedHighlightLine(10f, 5f, 0f);
+      // ------
+
+
       ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+
+      dataSets.add(set2); // add the data sets
       dataSets.add(set1); // add the data sets
+
+
       // set data
       chart.setData(new LineData(dataSets));
       chart.invalidate();
     }
+  }
+
+
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+
+    if (intent != null && sConn != null)
+      bindService(intent, sConn, 0);
+  }
+
+  @Override
+  protected void onResume() {
+    System.out.println("onResume");
+    super.onResume();
+
+//    if (intent != null && sConn != null)
+//      bindService(intent, sConn, 0);
+
+    connectionMqtt = client.isConnected();
+    updateStatus();
   }
 
   @Override
@@ -398,6 +669,10 @@ public class InputCloudActivity extends AppCompatActivity {
     if (client != null) {
       disconnect();
     }
+
+    if (!bound) return;
+    unbindService(sConn);
+    bound = false;
 
   }
 
