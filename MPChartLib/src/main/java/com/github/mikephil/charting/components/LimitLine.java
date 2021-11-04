@@ -45,11 +45,11 @@ public class LimitLine extends ComponentBase {
 
     /**
      * Constructor with limit.
-     * 
+     *
+     * @param v
      * @param limit - the position (the value) on the y-axis (y-value) or x-axis
-     *            (xIndex) where this line should appear
      */
-    public LimitLine(float limit) {
+    public LimitLine(float v, float limit) {
         mLimit = limit;
     }
 

@@ -139,11 +139,11 @@ public class DevicesFragment extends ListFragment {
     super.onResume();
     getActivity().registerReceiver(discoveryBroadcastReceiver, discoveryIntentFilter);
     if(bluetoothAdapter == null) {
-      setEmptyText("<bluetooth LE not supported>");
+      setEmptyText("<" + R.string.bluetoothLENotSupported + ">");
     } else if(!bluetoothAdapter.isEnabled()) {
-      setEmptyText("<bluetooth is disabled>");
+      setEmptyText("<" + R.string.bluetoothIsDisabled + ">");
 
-      Toast info = Toast.makeText(getActivity().getApplicationContext(), "<bluetooth is disabled>", Toast.LENGTH_SHORT);
+      Toast info = Toast.makeText(getActivity().getApplicationContext(), "<" + R.string.bluetoothIsDisabled + ">", Toast.LENGTH_SHORT);
       info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
       info.show();
 
@@ -154,7 +154,7 @@ public class DevicesFragment extends ListFragment {
         menu.findItem(R.id.ble_scan).setEnabled(false);
       }
     } else {
-      setEmptyText("<use SCAN to refresh devices>");
+      setEmptyText("<"+R.string.useSCAN+">");
       if (menu != null)
         menu.findItem(R.id.ble_scan).setEnabled(true);
     }
@@ -283,9 +283,9 @@ public class DevicesFragment extends ListFragment {
   private void stopScan() {
     if(scanState == ScanState.NONE)
       return;
-    setEmptyText("<no bluetooth devices found>");
+    setEmptyText("<"+R.string.noBluetooth+">");
 
-    Toast info = Toast.makeText(getActivity().getApplicationContext(), "<no bluetooth devices found>", Toast.LENGTH_SHORT);
+    Toast info = Toast.makeText(getActivity().getApplicationContext(), "<"+R.string.noBluetooth+">", Toast.LENGTH_SHORT);
     info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
     info.show();
 

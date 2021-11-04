@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -73,6 +74,14 @@ public class InputCloudActivity extends AppCompatActivity {
   boolean connectionMqtt = false;
   boolean download = false;
 
+  // amplifier
+  int ampMinX = 0;
+  int ampMaxX = 0;
+  boolean ampEnable = false;
+  boolean ampSetting = false;
+
+  int[] lastChartData = new int[1000];
+
   enum Dir {
     UP,
     DOWN,
@@ -99,14 +108,14 @@ public class InputCloudActivity extends AppCompatActivity {
     client.setCallback(new MqttCallbackExtended() {
       @Override
       public void connectComplete(boolean b, String s) {
-        System.out.println("connect completed");
+        System.out.println(R.string.connectСompleted);
         connectionMqtt = true;
         updateStatus();
       }
 
       @Override
       public void connectionLost(Throwable throwable) {
-        System.out.println("connection lost !!!!");
+        System.out.println(R.string.connectLost);
         connectionMqtt = false;
         updateStatus();
         try {
@@ -121,7 +130,7 @@ public class InputCloudActivity extends AppCompatActivity {
       @Override
       public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
   //        System.out.println("~~~~~~> Input: " + s + " Value: " + new String(mqttMessage.getPayload()));
-        System.out.println("~ arrived client ID: " + client_id);
+        System.out.println(R.string.arrivedClientID + client_id);
         String msg = new String(mqttMessage.getPayload());
         JSONArray arr = new JSONArray(new String(mqttMessage.getPayload()));
         String message = "";
@@ -132,6 +141,8 @@ public class InputCloudActivity extends AppCompatActivity {
           int value = arr.getInt(i);
           chartData[i] = value;
         }
+
+        lastChartData = chartData;
         updateChartData(chartData);
       }
 
@@ -144,6 +155,7 @@ public class InputCloudActivity extends AppCompatActivity {
     TextView edit_speedMat = (TextView) findViewById(R.id.edit_speedMat);
     TextView edit_hzs = (TextView) findViewById(R.id.edit_hzs);
     TextView txt_calcResult = (TextView) findViewById(R.id.txt_calcResult);
+
     Button btn_calc = (Button) findViewById(R.id.btn_calc);
     btn_calc.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -157,7 +169,7 @@ public class InputCloudActivity extends AppCompatActivity {
 //          float result = (((x1 - x2) / 2 ) * speed) * 1000;
           float hzs = Float.parseFloat(edit_hzs.getText().toString());
           float result = Calculation.calc(minX, maxX, speed, hzs);
-          txt_calcResult.setText("" + result + " (мм)");
+          txt_calcResult.setText("" + result + " mm");
         } catch (Exception e) {
           System.out.println("ERROR calculation" + e);
         }
@@ -166,21 +178,42 @@ public class InputCloudActivity extends AppCompatActivity {
     });
 
     // Range Seek bar
-    RangeSeekBar rangeSeekBar = (RangeSeekBar) findViewById(R.id.rangeSeekBar);
-    rangeSeekBar.setSelectedMinValue(28);
-    rangeSeekBar.setSelectedMaxValue(785);
-    rangeSeekBar.setRangeValues(0, 999);
-
-    rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
-      @Override
-      public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
-        minX = (int) bar.getSelectedMinValue();
-        maxX = (int) bar.getSelectedMaxValue();
-        limitMin.setLimit(minX);
-        limitMax.setLimit(maxX);
-        chart.invalidate();
-      }
-    });
+//    RangeSeekBar rangeSeekBar = (RangeSeekBar) findViewById(R.id.rangeSeekBar);
+//    rangeSeekBar.setSelectedMinValue(28);
+//    rangeSeekBar.setSelectedMaxValue(785);
+//    rangeSeekBar.setRangeValues(0, 999);
+//
+//    rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
+//      @Override
+//      public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
+//
+//
+//        int min = (int) bar.getSelectedMinValue();
+//        int max = (int) bar.getSelectedMaxValue();
+//
+//        System.out.println("amp minX " + min + " maxX: " + max);
+//
+//        ampMinX = min;
+//        ampMaxX = max;
+//
+//        if (ampSetting) {
+//          ampMinX = min;
+//          ampMaxX = max;
+//          limitMin.setLimit(ampMinX);
+//          limitMax.setLimit(ampMaxX);
+//          System.out.println("amp minX " + ampMinX + " maxX: " + ampMaxX);
+//          chart.invalidate();
+//        } else {
+//          minX = min;
+//          maxX = max;
+//          limitMin.setLimit(minX);
+//          limitMax.setLimit(maxX);
+//          System.out.println("minX " + minX + " maxX: " + maxX);
+//          chart.invalidate();
+//        }
+//
+//      }
+//    });
 
     configChart();
 
@@ -189,6 +222,38 @@ public class InputCloudActivity extends AppCompatActivity {
       @Override
       public void onClick(View v) {
         onConnectionHandler();
+      }
+    });
+
+    ImageButton btn_amp_enable = (ImageButton) findViewById(R.id.btn_amp_enable);
+    btn_amp_enable.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (ampEnable) ampEnable = false;
+        else ampEnable = true;
+
+        if (ampEnable) {
+          btn_amp_enable.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_enabled)));
+        } else {
+          btn_amp_enable.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_disabled)));
+        }
+
+        updateChartData(lastChartData);
+      }
+    });
+
+    ImageButton btn_amp_setting = (ImageButton) findViewById(R.id.btn_amp_setting);
+    btn_amp_setting.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (ampSetting) ampSetting = false;
+        else ampSetting = true;
+
+        if (ampSetting) {
+          btn_amp_setting.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_setting)));
+        } else {
+          btn_amp_setting.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_setting_disabled)));
+        }
       }
     });
 
@@ -281,14 +346,14 @@ public class InputCloudActivity extends AppCompatActivity {
     ImageView iv_download = (ImageView) findViewById(R.id.iv_download);
 
     if (download) {
-      btn_connection.setText("Остановить");
+      btn_connection.setText(R.string.stop);
       if (connectionMqtt) {
         iv_download.setImageResource(R.drawable.ic_cloud_download);
       } else {
         iv_download.setImageResource(R.drawable.ic_download_pause);
       }
     } else {
-      btn_connection.setText("Прием");
+      btn_connection.setText(R.string.receiving);
       iv_download.setImageResource(R.drawable.ic_download_pause);
     }
 
@@ -309,11 +374,27 @@ public class InputCloudActivity extends AppCompatActivity {
     rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
       @Override
       public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
-        minX = (int) bar.getSelectedMinValue();
-        maxX = (int) bar.getSelectedMaxValue();
-        limitMin.setLimit(minX);
-        limitMax.setLimit(maxX);
-        chart.invalidate();
+        int min = (int) bar.getSelectedMinValue();
+        int max = (int) bar.getSelectedMaxValue();
+
+        System.out.println("amp minX " + min + " maxX: " + max);
+
+        if (ampSetting) {
+          ampMinX = Math.max(min, 1);
+          ampMaxX = max;
+          limitMin.setLimit(ampMinX);
+          limitMax.setLimit(ampMaxX);
+          System.out.println("amp minX " + ampMinX + " maxX: " + ampMaxX);
+          chart.invalidate();
+          updateChartData(lastChartData);
+        } else {
+          minX = min;
+          maxX = max;
+          limitMin.setLimit(minX);
+          limitMax.setLimit(maxX);
+          System.out.println("minX " + minX + " maxX: " + maxX);
+          chart.invalidate();
+        }
       }
     });
 
@@ -408,158 +489,6 @@ public class InputCloudActivity extends AppCompatActivity {
   }
 
 
-  float[] amplifier(int[] data) {
-    int len = data.length;
-//    int[] res = new int[len];
-    float[] res = new float[len];
-
-//    System.arraycopy(data, 0, res, 0, data.length);
-    for (int i = 0; i < data.length; i++) {
-      res[i] = data[i];
-    }
-
-    int center = data[minX];
-
-    System.out.println("CENTER: " + center);
-
-//    int last = data[minX];
-//    float last = data[minX + 1];
-    float last = data[minX + 1];
-    int amp = 5;
-//    float amp = 0.01f;
-    boolean up = false;
-
-    float dist = 0;
-    boolean sign = false;
-
-    Dir dir = Dir.NONE;
-
-
-    for (int i = 0; i < len; i++) {
-      if (i > (minX + 1) && i < maxX)  {
-//        System.out.println("ITEM " + i + " v: " + data[i] + " [i+1]" + data[i+1] + " dist " + dist(data[i], data[i+1]));
-
-        switch (dir) {
-          case UP:
-//            dist = Math.abs(data[i] - data[i-1]);
-//            res[i] = data[i] + (amp * (dist + 0.5f));
-            res[i] = last + (amp * (dist));
-
-//            System.out.println("====================== UP COMPUTE ========================= + " + i);
-//            System.out.println("~> DIR UP data[i] " + data[i] + " : computed res[i]: " + res[i]);
-//          last = data[i] + (amp * dist);
-//            last = res[i];
-//            l = (amp);
-//            last = -(amp * dist);
-            last = res[i];
-            break;
-          case DOWN:
-//            dist = Math.abs(data[i] - data[i-1]);
-//            res[i] = data[i] - (amp * (dist + 0.5f));
-            res[i] = last - (amp * dist);
-
-//            System.out.println("====================== DOWN COMPUTE ========================= + " + i);
-//            System.out.println("~> DIR DOWN data[i] " + data[i] + " : computed res[i]: " + res[i]);
-//            l = -(amp);
-//          last = data[i] - (amp * dist);
-//            last = res[i];
-//            last = -(amp * dist);
-            last = res[i];
-            break;
-          case EQUAL:
-//            res[i] = res[i-1];
-            //dist = Math.abs(data[i] - data[i-1]);
-            //res[i] = data[i] - (amp * dist);
-            //res[i] = res[i-1];
-
-//            System.out.println("====================== EQUAL COMPUTE ========================= + " + i);
-
-
-
-
-            if (sign) {
-//              res[i] = data[i] + dist;
-//              res[i] = last;
-              res[i] = res[i-1];
-//              System.out.println("=> EQUAL SIGN " + sign + " data[i] " + data[i] + "  dist " + -dist  + " : computed res[i]: " + res[i]);
-            } else {
-//              res[i] = data[i] - dist;
-//              res[i] = last;
-              res[i] = res[i-1];
-//              System.out.println("=> EQUAL SIGN " + sign + " data[i] " + data[i] + "  -dist " + -dist  + " : computed res[i]: " + res[i]);
-            }
-
-
-
-//            res[i] = data[i] + last;
-//            res[i+1] = data[i] + l;
-//            dist = 0;
-//            res[i] = last;
-            break;
-        }
-
-        last = res[i];
-
-
-        if (data[i] > data[i+1]) {    // down
-          dir = Dir.DOWN;
-//          delta = -amp;
-          dist = Math.abs(data[i] - data[i+1]);
-//          last = -dist;
-          sign = false;
-
-//          System.out.println("====================== DOWN ============================");
-//          System.out.println("~> DOWN data[i] " + data[i] + " : next data[i+1]: " + data[i + 1]);
-//          System.out.println("~> DOWN dist: " + dist);
-//          System.out.println("=======================================================");
-        }
-
-        if (data[i] < data[i+1]) {    // up
-          dir = Dir.UP;
-//          delta = amp;
-          dist = Math.abs(data[i] - data[i+1]);
-
-//          last = dist;
-          sign = true;
-
-//          System.out.println("====================== UP =============================");
-//          System.out.println("~> UP data[i] " + data[i] + " : next data[i+1]: " + data[i + 1]);
-//          System.out.println("~> UP dist: " + dist);
-//          System.out.println("========================================================");
-        }
-
-        if (data[i] == data[i+1]) {
-//          System.out.println("====================== EQUAL ============================");
-          dir = Dir.EQUAL;
-//          System.out.println("=========================================================");
-        }
-
-      }
-    }
-
-    ///////////////////// OFFSET BY Y
-    float p = 0;
-
-    if (minX > 0 && maxX > 0) {
-      float d = Math.abs(data[maxX-1] - res[maxX-1]);
-      System.out.println("DISTANCE maxX " + d);
-
-      if (data[maxX-1] < res[maxX-1]) {
-        p = -d;
-      } else {
-        p = d;
-      }
-    }
-
-    for (int i = 0; i < len; i++) {
-      if (i > (minX + 1) && i < maxX) {
-        res[i] = res[i] + p;
-      }
-    }
-
-    return res;
-  }
-
   private void updateChartData(int[] data) {
     System.out.println("~>~~>~>~>~>~>~>~ updateChartData");
 
@@ -571,15 +500,27 @@ public class InputCloudActivity extends AppCompatActivity {
     }
 
     ArrayList<Entry> values2 = new ArrayList<>();
-//    float[] data2 = amplifier(data);
-    float[] data2 = Calculation.amplifier(data, minX, maxX);
+
+    float[] data2;
+
+    if (ampEnable) {
+      data2 = Calculation.amplifier(data, ampMinX, ampMaxX);
+    } else {
+      data2 = new float[ampMaxX];
+
+      for (int i = 0; i < len; i++) {
+        if (i > (ampMinX) && i < ampMaxX) data2[i] = 0;
+      }
+    }
+
+    System.out.println("minX: " + minX + " maxX: " + maxX);
+
     len = data2.length;
 
     for (int i = 0; i < len; i++) {
-      if (i > (minX) && i < maxX) {
+      if (i > (ampMinX) && i < ampMaxX) {
         values2.add(new Entry(i, data2[i]));
       }
-
     }
 
     LineDataSet set1;

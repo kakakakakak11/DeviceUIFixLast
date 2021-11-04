@@ -61,7 +61,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="15dp"
         android:width="220dp"
-        android:text="Принимать данные"
+        android:text="@string/main_text"
         android:textAllCaps="true" />
 
       <Button
@@ -82,6 +82,16 @@
         android:width="220dp"
         android:visibility="gone"
         android:text="find" />
+
+      <Button
+          android:id="@+id/language"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_horizontal"
+          android:layout_marginTop="15dp"
+          android:width="220dp"
+          android:onClick="setLocale"
+          android:text="@string/language"/>
 
 
 <!--      <org.florescu.android.rangeseekbar.RangeSeekBar-->

@@ -26,6 +26,7 @@ import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -96,6 +97,14 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   private int amountBytes = 0;
   private boolean first = true;
 
+  // amplifier
+  int ampMinX = 0;
+  int ampMaxX = 0;
+  boolean ampEnable = false;
+  boolean ampSetting = false;
+
+  int[] lastChartData = new int[1000];
+
 
   // enable bluetooth
   private void configureBluetooth() {
@@ -103,7 +112,7 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     BluetoothAdapter btAdapter = btManager.getAdapter();
 
     if (btAdapter != null && !btAdapter.isEnabled()) {
-      System.out.println("bt disabled");
+      System.out.println(R.string.btdisabled);
       connected = Connected.Disabled;
 
       Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -143,7 +152,7 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
           float speed = Float.parseFloat(edit_speedMat.getText().toString());
           float hzs = Float.parseFloat(edit_hzs.getText().toString());
           float result = Calculation.calc(minX, maxX, speed, hzs);
-          txt_calcResult.setText("" + result + " (мм)");
+          txt_calcResult.setText("" + result + " (mm)");
         } catch (Exception e) {
           System.out.println("ERROR calculation" + e);
         }
@@ -163,6 +172,38 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     configMqtt();
     configChart();
 
+    ImageButton btn_amp_enable = (ImageButton) findViewById(R.id.btn_amp_enable);
+    btn_amp_enable.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (ampEnable) ampEnable = false;
+        else ampEnable = true;
+
+        if (ampEnable) {
+          btn_amp_enable.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_enabled)));
+        } else {
+          btn_amp_enable.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_disabled)));
+        }
+
+        updateChartData(lastChartData);
+      }
+    });
+
+    ImageButton btn_amp_setting = (ImageButton) findViewById(R.id.btn_amp_setting);
+    btn_amp_setting.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (ampSetting) ampSetting = false;
+        else ampSetting = true;
+
+        if (ampSetting) {
+          btn_amp_setting.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_setting)));
+        } else {
+          btn_amp_setting.setImageDrawable((getDrawable(R.drawable.ic_chart_amp_setting_disabled)));
+        }
+      }
+    });
+
     int[] init = new int[1000];
     Arrays.fill(init, 1);
     updateChartData(init);
@@ -175,14 +216,14 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     client.setCallback(new MqttCallbackExtended() {
       @Override
       public void connectComplete(boolean b, String s) {
-        System.out.println("connect completed");
+        System.out.println(R.string.connectСompleted);
         connectionMqtt = true;
         updateStatus();
       }
 
       @Override
       public void connectionLost(Throwable throwable) {
-        System.out.println("connection lost !!!!");
+        System.out.println(R.string.connectLost);
         connectionMqtt = false;
         updateStatus();
         try {
@@ -240,11 +281,25 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
     rangeSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener() {
       @Override
       public void onRangeSeekBarValuesChanged(RangeSeekBar bar, Object minValue, Object maxValue) {
-        minX = (int) bar.getSelectedMinValue();
-        maxX = (int) bar.getSelectedMaxValue();
-        limitMin.setLimit(minX);
-        limitMax.setLimit(maxX);
-        chart.invalidate();
+        int min = (int) bar.getSelectedMinValue();
+        int max = (int) bar.getSelectedMaxValue();
+
+        if (ampSetting) {
+          ampMinX = Math.max(min, 1);
+          ampMaxX = max;
+          limitMin.setLimit(ampMinX);
+          limitMax.setLimit(ampMaxX);
+          System.out.println("amp minX " + ampMinX + " maxX: " + ampMaxX);
+          chart.invalidate();
+          updateChartData(lastChartData);
+        } else {
+          minX = min;
+          maxX = max;
+          limitMin.setLimit(minX);
+          limitMax.setLimit(maxX);
+          System.out.println("minX " + minX + " maxX: " + maxX);
+          chart.invalidate();
+        }
       }
     });
 
@@ -337,7 +392,7 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   }
 
   private void updateChartData(int[] data) {
-    System.out.println("~~>~~>~>~>~>~>~>~ updateChartData");
+    System.out.println("~>~~>~>~>~>~>~>~ updateChartData");
 
     ArrayList<Entry> values = new ArrayList<>();
 
@@ -346,12 +401,40 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       values.add(new Entry(i, data[i]));
     }
 
-    LineDataSet set1;
+    ArrayList<Entry> values2 = new ArrayList<>();
 
-    if (chart.getData() != null &&
-        chart.getData().getDataSetCount() > 0) {
+    float[] data2;
+
+    if (ampEnable) {
+      data2 = Calculation.amplifier(data, ampMinX, ampMaxX);
+    } else {
+      data2 = new float[ampMaxX];
+
+      for (int i = 0; i < len; i++) {
+        if (i > (ampMinX) && i < ampMaxX) data2[i] = 0;
+      }
+    }
+
+    System.out.println("minX: " + minX + " maxX: " + maxX);
+
+    len = data2.length;
+
+    for (int i = 0; i < len; i++) {
+      if (i > (ampMinX) && i < ampMaxX) {
+        values2.add(new Entry(i, data2[i]));
+      }
+    }
+
+    LineDataSet set1;
+    LineDataSet set2;
+
+    if (chart.getData() != null && chart.getData().getDataSetCount() > 0) {
       set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
       set1.setValues(values);
+
+      set2 = (LineDataSet) chart.getData().getDataSetByIndex(1);
+      set2.setValues(values2);
+
       chart.getData().notifyDataChanged();
       chart.notifyDataSetChanged();
       chart.invalidate();
@@ -362,7 +445,6 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       set1.setDrawIcons(false);
       // draw dashed line
       set1.setDrawCircles(false);
-      // draw points as solid circles
       set1.setDrawCircleHole(false);
       // customize legend entry
       set1.setFormLineWidth(1f);
@@ -370,14 +452,31 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       set1.setFormSize(15.f);
       // text size of values
       set1.setValueTextSize(9f);
-
       // draw selection line as dashed
       set1.enableDashedHighlightLine(10f, 5f, 0f);
 
+      // ---
+      set2 = new LineDataSet(values2, "--");
+      set2.setColor(Color.RED);
+      set2.setDrawIcons(false);
+      set2.setDrawCircles(false);
+      set2.setDrawCircleHole(false);
+      set2.setFormLineWidth(1f);
+      set2.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
+      set2.setFormSize(15.f);
+      // text size of values
+      set2.setValueTextSize(9f);
+      // draw selection line as dashed
+      set2.enableDashedHighlightLine(10f, 5f, 0f);
+      // ------
+
+
       ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+
+      dataSets.add(set2); // add the data sets
       dataSets.add(set1); // add the data sets
-      // create a data object with the data sets
-//      LineData data = ;
+
+
       // set data
       chart.setData(new LineData(dataSets));
       chart.invalidate();
@@ -386,12 +485,15 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
 
   @Override
   public void onDestroy() {
+    super.onDestroy();
+
     System.out.println("InputBluetooth -> onDestroy");
 
     if (connected != Connected.False)
       disconnect();
+
     stopService(new Intent(getApplicationContext(), SerialService.class));
-    super.onDestroy();
+
   }
 
   @Override
@@ -466,19 +568,19 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
       String deviceName = device.getName() != null ? device.getName() : device.getAddress();
       status("connecting...");
 
-      System.out.println("Connecting to " + deviceName + " | address " + deviceAddress);
+      System.out.println(R.string.connectingTo + deviceName + R.string.address + deviceAddress);
 
       System.out.println("SERVICE: " + service);
 
       if (service != null) {
         connected = Connected.Pending;
-        service.connect(this, "Connecting to " + deviceName);
+        service.connect(this, R.string.connectingTo + deviceName);
         socket = new SerialSocket();
         socket.connect(getApplicationContext(), service, device);
 
         updateStatus();
 
-        Toast info = Toast.makeText(getApplicationContext(), "connecting...", Toast.LENGTH_SHORT);
+        Toast info = Toast.makeText(getApplicationContext(), R.string.connecting, Toast.LENGTH_SHORT);
         info.setGravity(Gravity.BOTTOM | Gravity.CENTER, 0, 300);
         info.show();
       } else {
@@ -496,8 +598,9 @@ public class InputBluetooth extends AppCompatActivity implements ServiceConnecti
   private void disconnect() {
     System.out.println("disconnect()");
     connected = Connected.False;
-    service.disconnect();
-    socket.disconnect();
+
+    if (service != null) service.disconnect();
+    if (socket != null) socket.disconnect();
 
     updateStatus();
     inputEnabled = false;

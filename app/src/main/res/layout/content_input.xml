@@ -6,7 +6,7 @@
   android:layout_height="match_parent"
   app:layout_behavior="@string/appbar_scrolling_view_behavior"
   tools:context="com.example.deviceui.InputCloudActivity"
-  tools:showIn="@layout/activity_inputCloud">
+  >
 
   <EditText
     android:id="@+id/textMessage"
@@ -15,7 +15,7 @@
     android:layout_marginLeft="16dp"
     android:layout_marginTop="16dp"
     android:ems="10"
-    android:hint="Enter message"
+    android:hint="@string/enterMessage"
     android:inputType="textPersonName"
     app:layout_constraintLeft_toLeftOf="parent"
     app:layout_constraintTop_toTopOf="parent" />
@@ -27,7 +27,7 @@
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:layout_marginTop="11dp"
-    android:text="Publish"
+    android:text="@string/publish"
     app:layout_constraintHorizontal_bias="0.416"
     app:layout_constraintLeft_toRightOf="@+id/textMessage"
     app:layout_constraintRight_toRightOf="parent"
@@ -82,7 +82,7 @@
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:layout_marginTop="18dp"
-    android:text="UnSubscribe"
+    android:text="@string/unsubscribe"
     app:layout_constraintHorizontal_bias="0.416"
     app:layout_constraintLeft_toRightOf="@+id/unSubscribeTopic"
     app:layout_constraintRight_toRightOf="parent"

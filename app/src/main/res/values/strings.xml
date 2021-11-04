@@ -1,10 +1,39 @@
 <resources>
   <string name="app_name">DeviceUI</string>
   <string name="action_settings">Settings</string>
-
   <string name="main_text">Connect</string>
   <string name="button_wifi_text">Wi-Fi</string>
   <string name="button_bluetooth_text">Bluetooth</string>
+  <string name="language">Language</string>
+  <string name="receiving">Receiving</string>
+  <string name="stop">Stop</string>
+  <string name="calculation">Calculation</string>
+  <string name="joinBT">Join BT</string>
+  <string name="Count">Count</string>
+
+  <string name="enterMessage">Enter message</string>
+  <string name="publish">Publish</string>
+  <string name="subscribe">Subscribe</string>
+  <string name="unsubscribe">Unubscribe</string>
+  <string name="btdisabled">bt disabled</string>
+  <string name="upperLimit">Upper Limit</string>
+  <string name="lowerLimit">Lower Limit</string>
+  <string name="bluetoothLENotSupported">bluetooth LE not supported</string>
+  <string name="bluetoothIsDisabled">bluetooth is disabled</string>
+  <string name="useSCAN">use SCAN to refresh devices</string>
+  <string name="noBluetooth">no bluetooth devices found</string>
+
+  <string name="connectСompleted">connect completed</string>
+  <string name="connectLost">connect lost!!!!</string>
+  <string name="connectingTo">Connecting to</string>
+  <string name="address"> | address </string>
+  <string name="arrivedClientID">~ arrived client ID:</string>
+  <string name="savedPreferences">Saved Preferences</string>
+  <string name="connecting">Connecting\.\.\.</string>
+
+
+
+
 
   <string name="menu_type_view">Type view</string>
   <string name="menu_switch_wifi">Switch to Wi-Fi</string>
@@ -106,6 +135,6 @@
   <string name="title_activity_templates">TemplatesActivity</string>
   <string name="title_activity_input">InputActivity</string>
   <string name="title_activity_device" translatable="false">DeviceActivity</string>
-  <string name="title_activity_main2">Main2Activity</string>
+  <string name="title_activity_main2" translatable="false">Main2Activity</string>
 
 </resources>

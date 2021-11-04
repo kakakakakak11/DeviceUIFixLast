@@ -66,7 +66,7 @@ public class SettingsActivity extends AppCompatActivity
     editor.putString(PORT, editPort.getText().toString());
     editor.commit();
 
-    Toast toast = Toast.makeText(getApplicationContext(), "Saved Preferences", Toast.LENGTH_SHORT);
+    Toast toast = Toast.makeText(getApplicationContext(), R.string.savedPreferences, Toast.LENGTH_SHORT);
     toast.show();
   }
 

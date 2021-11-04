@@ -8,116 +8,116 @@
 
 
   <androidx.appcompat.widget.LinearLayoutCompat
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      tools:layout_editor_absoluteX="0dp"
+      tools:layout_editor_absoluteY="0dp">
 
     <androidx.appcompat.widget.LinearLayoutCompat
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      >
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp">
 
       <ImageView
-        android:id="@+id/iv_bt"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/ic_bluetooth"
-        />
+          android:id="@+id/iv_bt"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="16dp"
+          android:src="@drawable/ic_bluetooth" />
 
       <ImageView
-        android:id="@+id/iv_mqtt"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/ic_cloud_off"
-        />
+          android:id="@+id/iv_mqtt"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="16dp"
+          android:src="@drawable/ic_cloud_off" />
 
       <Button
-        android:id="@+id/btn_deviceConnect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="16dp"
-        android:text="Подключить BT" />
+          android:id="@+id/btn_deviceConnect"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="16dp"
+          android:text="@string/joinBT" />
 
-<!--      <ImageButton-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="10dp"-->
-<!--        android:layout_marginLeft="16dp"-->
-<!--        android:src="@drawable/ic_bluetooth"-->
-<!--        />-->
+
+      <androidx.appcompat.widget.AppCompatImageButton
+          android:id="@+id/btn_amp_enable"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="24dp"
+          android:src="@drawable/ic_chart_amp_disabled" />
+
+      <androidx.appcompat.widget.AppCompatImageButton
+          android:id="@+id/btn_amp_setting"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="3dp"
+          android:src="@drawable/ic_chart_amp_setting_disabled" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <View
-      android:layout_width="match_parent"
-      android:background="?android:attr/listDivider"
-      android:layout_height="2dp" />
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="?android:attr/listDivider" />
 
     <org.florescu.android.rangeseekbar.RangeSeekBar
-      android:id="@+id/rangeSeekBar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"/>
+        android:id="@+id/rangeSeekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
       <EditText
-        android:id="@+id/edit_speedMat"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:text="5920"
-        android:textAlignment="center"
-        android:inputType="numberDecimal"
-        android:singleLine="true" />
+          android:id="@+id/edit_speedMat"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_weight="2"
+          android:inputType="numberDecimal"
+          android:singleLine="true"
+          android:text="5920"
+          android:textAlignment="center" />
 
       <EditText
-        android:id="@+id/edit_hzs"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:text="0"
-        android:textAlignment="center"
-        android:inputType="numberDecimal"
-        android:singleLine="true" />
+          android:id="@+id/edit_hzs"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_weight="2"
+          android:inputType="numberDecimal"
+          android:singleLine="true"
+          android:text="0"
+          android:textAlignment="center" />
 
       <Button
-        android:id="@+id/btn_calc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Посчитать"
-        />
+          android:id="@+id/btn_calc"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="@string/Count" />
 
       <TextView
-        android:id="@+id/txt_calcResult"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="0"
-        android:textAlignment="center"
-        />
+          android:id="@+id/txt_calcResult"
+          android:layout_width="100dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:text="0"
+          android:textAlignment="center" />
 
 
     </LinearLayout>
 
     <com.github.mikephil.charting.charts.LineChart
-      android:id="@+id/chart1"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:layout_above="@+id/seekBar1" />
+        android:id="@+id/chart1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/seekBar1" />
 
   </androidx.appcompat.widget.LinearLayoutCompat>
-
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -293,11 +293,11 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             String deviceName = device.getName() != null ? device.getName() : device.getAddress();
             status("connecting...");
 
-            System.out.println("Connecting to " + deviceName + " | address " + deviceAddress);
+            System.out.println(R.string.connectingTo + deviceName + R.string.address + deviceAddress);
 
             connected = Connected.Pending;
             socket = new SerialSocket();
-            service.connect(this, "Connecting to " + deviceName);
+            service.connect(this, R.string.connectingTo + deviceName);
             socket.connect(getContext(), service, device);
 
             Toast info = Toast.makeText(getActivity().getApplicationContext(), "connecting...", Toast.LENGTH_SHORT);

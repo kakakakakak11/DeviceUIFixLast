@@ -26,51 +26,59 @@
       <!--      </android.support.design.widget.AppBarLayout>-->
 
   <androidx.appcompat.widget.LinearLayoutCompat
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_marginTop="10dp"
-    >
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:orientation="vertical">
 
 
     <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      >
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
       <ImageView
-        android:id="@+id/iv_status"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/ic_cloud_off"
-        />
+          android:id="@+id/iv_status"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="16dp"
+          android:src="@drawable/ic_cloud_off" />
 
       <Button
-        android:id="@+id/btn_connection"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="16dp"
-        android:text="Прием" />
+          android:id="@+id/btn_connection"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="10dp"
+          android:layout_marginLeft="16dp"
+          android:text="@string/receiving" />
 
       <ImageView
-        android:id="@+id/iv_download"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginLeft="16dp"
-        android:src="@drawable/ic_download_pause"
-        />
+          android:id="@+id/iv_download"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="16dp"
+          android:src="@drawable/ic_download_pause" />
+
+      <androidx.appcompat.widget.AppCompatImageButton
+          android:id="@+id/btn_amp_enable"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="48dp"
+          android:src="@drawable/ic_chart_amp_disabled" />
+
+      <androidx.appcompat.widget.AppCompatImageButton
+          android:id="@+id/btn_amp_setting"
+          android:layout_width="wrap_content"
+          android:layout_height="48dp"
+          android:layout_marginLeft="3dp"
+          android:src="@drawable/ic_chart_amp_setting_disabled" />
 
     </LinearLayout>
 
     <androidx.appcompat.widget.LinearLayoutCompat
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginBottom="10dp"
-      android:orientation="horizontal">
-
-
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal">
 
 
       <!--      <Button-->
@@ -94,67 +102,66 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <com.github.mikephil.charting.charts.LineChart
-      android:id="@+id/chart1"
-      android:layout_width="match_parent"
-      android:layout_height="420dp"
-      android:layout_above="@+id/seekBar1" >
+        android:id="@+id/chart1"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        android:layout_above="@+id/seekBar1">
 
     </com.github.mikephil.charting.charts.LineChart>
 
 
     <androidx.appcompat.widget.LinearLayoutCompat
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      app:layout_constraintTop_toBottomOf="@+id/graph"
-      tools:ignore="MissingConstraints">
-
-      <org.florescu.android.rangeseekbar.RangeSeekBar
-        android:id="@+id/rangeSeekBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:activeColor="@color/colorAccent"
-        />
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/graph"
+        tools:ignore="MissingConstraints">
+
+      <org.florescu.android.rangeseekbar.RangeSeekBar
+          android:id="@+id/rangeSeekBar"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          app:activeColor="@color/colorAccent" />
 
       <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal">
 
         <EditText
-          android:id="@+id/edit_speedMat"
-          android:layout_width="wrap_content"
-          android:layout_height="match_parent"
-          android:layout_weight="2"
-          android:inputType="numberDecimal"
-          android:singleLine="true"
-          android:text="5920"
-          android:textAlignment="center" />
+            android:id="@+id/edit_speedMat"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:text="5920"
+            android:textAlignment="center" />
 
         <EditText
-          android:id="@+id/edit_hzs"
-          android:layout_width="wrap_content"
-          android:layout_height="match_parent"
-          android:layout_weight="2"
-          android:inputType="numberDecimal"
-          android:singleLine="true"
-          android:text="0"
-          android:textAlignment="center" />
+            android:id="@+id/edit_hzs"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:inputType="numberDecimal"
+            android:singleLine="true"
+            android:text="0"
+            android:textAlignment="center" />
 
         <Button
-          android:id="@+id/btn_calc"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:text="Расчет" />
+            android:id="@+id/btn_calc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/calculation" />
 
         <TextView
-          android:id="@+id/txt_calcResult"
-          android:layout_width="100dp"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:text="0"
-          android:textAlignment="center" />
+            android:id="@+id/txt_calcResult"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0"
+            android:textAlignment="center" />
       </androidx.appcompat.widget.LinearLayoutCompat>
 
 

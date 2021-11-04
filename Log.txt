@@ -1,0 +1,25 @@
+D/BluetoothGatt: onConfigureMTU() - Device=80:1F:12:B9:62:BE mtu=23 status=133
+D/SerialSocket: mtu size 23, status=133
+D/BluetoothGatt: setCharacteristicNotification() - uuid: 49535343-1e4d-4bd9-ba61-23c647249616 enable: true
+D/SerialSocket: enable read indication
+    writing read characterictic descriptor
+D/BluetoothGatt: onClientConnectionState() - status=8 clientIf=6 device=80:1F:12:B9:62:BE
+D/BluetoothGatt: onClientConnectionState() - status=0 clientIf=6 device=80:1F:12:B9:62:BE
+D/SerialSocket: connect status 0, discoverServices
+D/BluetoothGatt: discoverServices() - device: 80:1F:12:B9:62:BE
+D/BluetoothGatt: onSearchComplete() = Device=80:1F:12:B9:62:BE Status=0
+D/SerialSocket: servicesDiscovered, status 0
+
+
+
+------------------------------------------------------------------------------------
+D/BluetoothGatt: onSearchComplete() = Device=80:1F:12:B9:62:BE Status=0
+D/SerialSocket: servicesDiscovered, status 0
+D/SerialSocket: service rn4870 uart
+    request max MTU
+D/BluetoothGatt: configureMTU() - device: 80:1F:12:B9:62:BE mtu: 512			<~~~
+D/BluetoothGatt: onConfigureMTU() - Device=80:1F:12:B9:62:BE mtu=23 status=133		<~~~
+D/SerialSocket: mtu size 23, status=133
+D/BluetoothGatt: onClientConnectionState() - status=8 clientIf=7 device=80:1F:12:B9:62:BE
+D/BluetoothGatt: setCharacteristicNotification() - uuid: 49535343-1e4d-4bd9-ba61-23c647249616 enable: true
+------------------------------------------------------------------------------------------------------------
