@@ -1,12 +1,10 @@
 package com.example.deviceui;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
@@ -31,18 +29,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RemoteViews;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
@@ -54,9 +47,14 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     private static String PASSWORD = "password";
     private static String PORT = "port";
     private static String MESSAGE = "message";
-    public static final String LANGUAGE_ENGLISH = "en";
-    public static final String LANGUAGE_UKRAINIAN = "uk";
-    public static final String LANGUAGE_RUSSIAN = "ru";
+    private static final String LANGUAGE_ENGLISH = "en";
+    private static final String LANGUAGE_UKRAINIAN = "uk";
+    private static final String LANGUAGE_RUSSIAN = "ru";
+    private static final String languageKey = "languageKey";
+    SharedPreferences mSettings;
+    String languageValue;
+    LocaleManager localeManager = new LocaleManager();
+
 
     int minX = 0;
     int maxX = 0;
@@ -72,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         Toolbar toolbar = findViewById(R.id.toolbar);
 
         configureBluetooth();
@@ -340,32 +340,33 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         onBackPressed();
         return true;
     }
-    LocaleManager localeManager = new LocaleManager();
+
     @Override
     protected void attachBaseContext(Context newBase) {
+        mSettings = getSharedPreferences("DataBase", Context.MODE_PRIVATE);
+        if (mSettings.contains(languageKey)) {
+            languageValue = mSettings.getString(languageKey, LANGUAGE_ENGLISH);
+            Log.d("Locale", "key: " + languageValue);
+        }
+
+        Log.d("Locale", "keyattachBase: " + languageValue);
         Log.d("Locale", "attachBaseContext");
-        Context contextOne;
-        contextOne = localeManager.updateResources(newBase,LANGUAGE_UKRAINIAN);
-        super.attachBaseContext(contextOne);
+        if(languageValue == null){
+            super.attachBaseContext(newBase);
+        } else {
+            Context contextOne;
+            contextOne = localeManager.updateResources(newBase, languageValue);
+            super.attachBaseContext(contextOne);
+        }
     }
 
-    //    LocaleManager localeManager = new LocaleManager();
-//    @Override
-//    protected void attachBaseContext(Context base) {
-//        Log.d("Locale", "attachBaseContext");
-//        Context contextOne;
-//        contextOne = localeManager.updateResources(base,LANGUAGE_ENGLISH);
-//        super.attachBaseContext(contextOne);
-//    }
+    public void setLocale(View view) {
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putString(languageKey, LANGUAGE_ENGLISH);
+        editor.apply();
 
-
-   public void setLocale(View view) {
-        localeManager.updateResources(this,LANGUAGE_UKRAINIAN);
-        //(new LocaleManager(this)).updateResources(this.LANGUAGE_UKRAINIAN);
         Intent i = new Intent(this, MainActivity.class);
         startActivity(i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
         finishAffinity();
     }
-
-
 }
