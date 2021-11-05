@@ -59,7 +59,7 @@ import java.util.Random;
 
 import static android.app.PendingIntent.getActivity;
 
-public class InputBluetooth extends AppCompatActivity implements ServiceConnection, SerialListener {
+public class InputBluetooth extends BaseActivity implements ServiceConnection, SerialListener {
 
   // device name "BUFD_BLE-62BE
   private String deviceAddress = "80:1F:12:B9:62:BE";

@@ -38,7 +38,7 @@ import org.florescu.android.rangeseekbar.RangeSeekBar;
 import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
+public class MainActivity extends BaseActivity implements FragmentManager.OnBackStackChangedListener {
     private static final String DEBUG_TAG = "MqttService";
     public static String APP_ID = "DeviceUI";
     private static String HOSTNAME = "hostname";
@@ -47,13 +47,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
     private static String PASSWORD = "password";
     private static String PORT = "port";
     private static String MESSAGE = "message";
-    private static final String LANGUAGE_ENGLISH = "en";
-    private static final String LANGUAGE_UKRAINIAN = "uk";
-    private static final String LANGUAGE_RUSSIAN = "ru";
-    private static final String languageKey = "languageKey";
-    SharedPreferences mSettings;
-    String languageValue;
-    LocaleManager localeManager = new LocaleManager();
 
 
     int minX = 0;
@@ -329,7 +322,6 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         }
     }
 
-
     @Override
     public void onBackStackChanged() {
         getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0);
@@ -341,28 +333,13 @@ public class MainActivity extends AppCompatActivity implements FragmentManager.O
         return true;
     }
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        mSettings = getSharedPreferences("DataBase", Context.MODE_PRIVATE);
-        if (mSettings.contains(languageKey)) {
-            languageValue = mSettings.getString(languageKey, LANGUAGE_ENGLISH);
-            Log.d("Locale", "key: " + languageValue);
-        }
-
-        Log.d("Locale", "keyattachBase: " + languageValue);
-        Log.d("Locale", "attachBaseContext");
-        if(languageValue == null){
-            super.attachBaseContext(newBase);
-        } else {
-            Context contextOne;
-            contextOne = localeManager.updateResources(newBase, languageValue);
-            super.attachBaseContext(contextOne);
-        }
-    }
-
     public void setLocale(View view) {
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putString(languageKey, LANGUAGE_ENGLISH);
+        if (LANGUAGE_UKRAINIAN.equals(languageValue)) {
+            editor.putString(languageKey, LANGUAGE_ENGLISH);
+        } else {
+            editor.putString(languageKey, LANGUAGE_UKRAINIAN);
+        }
         editor.apply();
 
         Intent i = new Intent(this, MainActivity.class);

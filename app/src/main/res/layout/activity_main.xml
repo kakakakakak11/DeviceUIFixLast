@@ -92,15 +92,6 @@
           android:width="220dp"
           android:onClick="setLocale"
           android:text="@string/language"/>
-      <Button
-          android:id="@+id/language2"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_gravity="center_horizontal"
-          android:layout_marginTop="15dp"
-          android:width="220dp"
-          android:onClick="save"
-          android:text="@string/language"/>
 
 
 <!--      <org.florescu.android.rangeseekbar.RangeSeekBar-->

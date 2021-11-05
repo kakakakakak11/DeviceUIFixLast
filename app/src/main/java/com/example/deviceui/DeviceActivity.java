@@ -7,7 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
 
-public class DeviceActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
+public class DeviceActivity extends BaseActivity implements FragmentManager.OnBackStackChangedListener {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

@@ -5,7 +5,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
 
-public class OptionsActivity extends AppCompatActivity {
+public class OptionsActivity extends BaseActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

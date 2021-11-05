@@ -1,6 +1,7 @@
 package com.example.deviceui;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
@@ -45,7 +46,7 @@ import java.util.Random;
 
 
 
-public class InputCloudActivity extends AppCompatActivity {
+public class InputCloudActivity extends BaseActivity {
   private MqttAndroidClient client;
   private String TAG = "MainActivity";
   private PahoMqttClient pahoMqttClient;
@@ -617,4 +618,8 @@ public class InputCloudActivity extends AppCompatActivity {
 
   }
 
+  @Override
+  protected void attachBaseContext(Context newBase) {
+    super.attachBaseContext(newBase);
+  }
 }
